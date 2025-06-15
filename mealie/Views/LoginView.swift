@@ -1,8 +1,20 @@
 import SwiftUI
 
-struct LoginView: View {
+struct LoginView : View {
     
-    @Bindable private var viewModel = LoginViewModel()
+    @Environment(AuthenticationState.self) var authState
+    
+    var body: some View {
+       
+        LoginBodyView(viewModel: .init(authState: authState))
+        
+    }
+    
+}
+
+struct LoginBodyView: View {
+    
+    @State var viewModel: LoginViewModel
     @FocusState private var focusedField: Field?
     
     enum Field: Hashable {

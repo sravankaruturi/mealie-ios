@@ -3,8 +3,9 @@ import SwiftUI
 
 @Observable
 final class LoginViewModel {
-    // FIX: Removed @Published property wrappers.
-    // The @Observable macro automatically makes these properties observable.
+    
+    var authState: AuthenticationState
+    
     var serverURL: String = ""
     var username: String = ""
     var password: String = ""
@@ -13,6 +14,10 @@ final class LoginViewModel {
     
     // NOTE: You'll need to implement the MealieAPIService and KeychainService
     // for this ViewModel to be fully functional.
+    
+    init(authState: AuthenticationState) {
+        self.authState = authState
+    }
     
     func authenticate() async {
         isLoading = true
@@ -36,8 +41,8 @@ final class LoginViewModel {
         
         do {
             let token = try await api.login(username: username, password: password)
-            // This assumes you have a keychain helper class.
-            KeychainService.shared.saveToken(token)
+            
+            authState.login(token: token)
             // You might want to add a success state here to trigger navigation.
         } catch {
             self.error = error.localizedDescription

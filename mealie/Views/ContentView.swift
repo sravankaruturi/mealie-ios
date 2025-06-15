@@ -2,13 +2,14 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var isAuthenticated = false
+    
+    @State private var authState = AuthenticationState()
     @State private var showPasteboardBanner = false
     @State private var pasteboardURL: URL?
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            if isAuthenticated {
+            if authState.isLoggedIn {
                 MainTabView()
             } else {
                 LoginView()
@@ -29,5 +30,6 @@ struct ContentView: View {
                 showPasteboardBanner = true
             }
         }
+        .environment(authState)
     }
 } 
