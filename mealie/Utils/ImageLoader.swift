@@ -1,0 +1,1 @@
+// If you need custom image loading logic, add it here. For now, Kingfisher is used directly in RecipeCardView. 
