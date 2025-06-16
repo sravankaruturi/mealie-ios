@@ -36,14 +36,12 @@ final class LoginViewModel {
             return
         }
         
-        // This assumes you have an API service class set up.
-        let api = MealieAPIService(serverURL: url)
+        let api = MealieAPIService.shared
+        api.setURL(url)
         
         do {
             let token = try await api.login(username: username, password: password)
-            
-            authState.login(token: token)
-            // You might want to add a success state here to trigger navigation.
+            authState.login(token: token, serverURL: url)
         } catch {
             self.error = error.localizedDescription
         }

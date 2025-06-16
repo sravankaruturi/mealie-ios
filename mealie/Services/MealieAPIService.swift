@@ -1,4 +1,6 @@
 import Foundation
+import OpenAPIRuntime
+import OpenAPIURLSession
 
 enum MealieAPIError: Error, LocalizedError {
     case invalidURL
@@ -20,56 +22,106 @@ enum MealieAPIError: Error, LocalizedError {
     }
 }
 
+//// A simple Codable struct to decode the token from the response body.
+//struct TokenResponse: Codable {
+//    let access_token: String
+//}
+
+
 final class MealieAPIService {
     
-    private(set) var serverURL: URL
-    private var session: URLSession
+    public static let shared = MealieAPIService(serverURL: nil)
     
-    init(serverURL: URL) {
-        self.serverURL = serverURL
+    private(set) var serverURL: URL?
+    private var session: URLSession
+    var client: Client?
+    
+    init(serverURL: URL?) {
+        
         let config = URLSessionConfiguration.default
         self.session = URLSession(configuration: config)
+        
+        if serverURL != nil {
+            setURL(serverURL!)
+        }
+
+    }
+    
+    public func setURL(_ url: URL) {
+        self.serverURL = url
+        self.client = Client(
+            serverURL: url,
+            transport: URLSessionTransport(),
+            middlewares: [AuthenticationMiddleware()]
+        )
     }
     
     // MARK: - Authentication
     func login(username: String, password: String) async throws -> String {
-        let url = serverURL.appendingPathComponent("/api/auth/token")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        let bodyString = "username=\(username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&password=\(password.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
-        request.httpBody = bodyString.data(using: .utf8)
+        
+        let requestBody = Components.Schemas.Body_get_token_api_auth_token_post(
+            username: username,
+            password: password,
+            remember_me: true
+        )
+        
+        let input = Operations.get_token_api_auth_token_post.Input(
+            body: .urlEncodedForm(requestBody)
+            )
+        
         do {
-            let (data, response) = try await session.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw MealieAPIError.networkError(NSError(domain: "No HTTP response", code: 0))
+            let output = try await client!.get_token_api_auth_token_post(input)
+            
+            switch output {
+                
+            case .ok(let response):
+                let jsonResponse = try response.body.json
+                
+                guard let token = jsonResponse.access_token else {
+                    throw MealieAPIError.custom("No access_token in response.")
+                }
+                return token
+                
+            case .unprocessableContent(let response):
+                // Handle validation errors (422).
+                // You can inspect 'response.body' for more details if needed.
+                throw MealieAPIError.custom("Validation Error: \(response)")
+
+            case .undocumented(let statusCode, _):
+                // Handle any other status code not in the spec.
+                if statusCode == 401 {
+                    throw MealieAPIError.unauthorized
+                } else {
+                    throw MealieAPIError.networkError(NSError(domain: "HTTP error", code: statusCode))
+                }
             }
-            if httpResponse.statusCode == 401 {
-                throw MealieAPIError.unauthorized
-            }
-            if !(200...299).contains(httpResponse.statusCode) {
-                throw MealieAPIError.networkError(NSError(domain: "HTTP error", code: httpResponse.statusCode))
-            }
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            guard let token = json?["access_token"] as? String else {
-                throw MealieAPIError.custom("No access_token in response.")
-            }
-            return token
         } catch let error as URLError {
             if error.code == .appTransportSecurityRequiresSecureConnection || error.code == .serverCertificateUntrusted {
                 throw MealieAPIError.insecureConnection
             }
             throw MealieAPIError.networkError(error)
         } catch {
+            // Catches decoding errors or other issues.
             throw MealieAPIError.networkError(error)
         }
+    
     }
     
     // MARK: - Recipes
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
-        // GET /api/recipes
-        // Handle pagination, transform JSON to Recipe models
-        throw MealieAPIError.custom("Not implemented")
+        
+        let input = Operations.get_all_api_recipes_get.Input(query: .init(page: page, perPage: perPage))
+        let output = try await self.client!.get_all_api_recipes_get(input)
+        
+        switch output {
+        case .ok(let response):
+            let paginationResponse = try response.body.json
+            // ... mapping logic from RecipeSummary to your Recipe model ...
+            return [] // Placeholder for mapped recipes
+        default:
+            throw MealieAPIError.custom("Failed to fetch recipes.")
+        }
+        
     }
     
     func fetchRecipeDetails(slug: String) async throws -> Recipe {

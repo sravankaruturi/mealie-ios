@@ -8,11 +8,10 @@ final class RecipesViewModel {
     var isSyncing: Bool = false
     var error: String?
     let modelContext: ModelContext
-    let apiService: MealieAPIService
+    let apiService: MealieAPIService = .shared
     
-    init(modelContext: ModelContext, apiService: MealieAPIService) {
+    init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.apiService = apiService
     }
     
     func syncRecipes() async {

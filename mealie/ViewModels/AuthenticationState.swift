@@ -15,11 +15,18 @@ final class AuthenticationState {
 
     init(keychainService: KeychainService = .shared) {
         self.keychainService = keychainService
-        self.isLoggedIn = keychainService.getToken() != nil
+        if let token = keychainService.getToken() {
+            self.isLoggedIn = true
+            // Set up the API service with the stored server URL
+            if let serverURL = keychainService.getServerURL() {
+                MealieAPIService.shared.setURL(serverURL)
+            }
+        }
     }
 
-    func login(token: String) {
-        keychainService.saveToken(token)
+    func login(token: String, serverURL: URL) {
+        keychainService.saveToken(token, serverURL: serverURL)
+        MealieAPIService.shared.setURL(serverURL)
         isLoggedIn = true
     }
 
