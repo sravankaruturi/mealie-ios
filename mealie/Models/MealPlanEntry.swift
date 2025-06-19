@@ -14,4 +14,11 @@ final class MealPlanEntry {
         self.mealType = mealType
         self.recipe = recipe
     }
+    
+    // Default initializer for SwiftData
+    init() {
+        self.date = Date()
+        self.mealType = ""
+        self.recipe = nil
+    }
 }

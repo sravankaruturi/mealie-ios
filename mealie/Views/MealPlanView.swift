@@ -2,7 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct MealPlanView: View {
-    @Query(sort: [SortDescriptor<MealPlanEntry>(\.date)]) var entries: [MealPlanEntry]
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \MealPlanEntry.date) private var entries: [MealPlanEntry]
     @State private var selectedSegment = 0
     @State private var selectedDate = Date()
     @State private var showAddSheet = false

@@ -15,11 +15,17 @@ final class AuthenticationState {
 
     init(keychainService: KeychainService = .shared) {
         self.keychainService = keychainService
-        if let token = keychainService.getToken() {
+        if keychainService.getToken() != nil {
+            print("Token Exists: Logging in...")
             self.isLoggedIn = true
             // Set up the API service with the stored server URL
             if let serverURL = keychainService.getServerURL() {
                 MealieAPIService.shared.setURL(serverURL)
+                print("Set the server URL to: \(serverURL)")
+            } else {
+                print( "Server URL not found in keychain. Logging Out")
+                keychainService.deleteToken()
+                isLoggedIn = false
             }
         }
     }

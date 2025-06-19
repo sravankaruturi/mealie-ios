@@ -22,12 +22,6 @@ enum MealieAPIError: Error, LocalizedError {
     }
 }
 
-//// A simple Codable struct to decode the token from the response body.
-//struct TokenResponse: Codable {
-//    let access_token: String
-//}
-
-
 final class MealieAPIService {
     
     public static let shared = MealieAPIService(serverURL: nil)
@@ -43,6 +37,8 @@ final class MealieAPIService {
         
         if serverURL != nil {
             setURL(serverURL!)
+        }else {
+            print("Server URL is Null")
         }
 
     }
@@ -110,14 +106,29 @@ final class MealieAPIService {
     // MARK: - Recipes
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
         
-        let input = Operations.get_all_api_recipes_get.Input(query: .init(page: page, perPage: perPage))
+        let input = Operations.get_all_api_recipes_get.Input(query: .init() )
         let output = try await self.client!.get_all_api_recipes_get(input)
         
         switch output {
         case .ok(let response):
+            
             let paginationResponse = try response.body.json
-            // ... mapping logic from RecipeSummary to your Recipe model ...
-            return [] // Placeholder for mapped recipes
+            
+            let recipeSummaries = paginationResponse.items
+            
+            var recipes: [Recipe] = []
+            
+            for recipeSummary in recipeSummaries {
+                
+                guard let slug = recipeSummary.slug else { continue }
+                
+                let recipe = try await fetchRecipeDetails(slug: slug)
+                recipes.append(recipe)
+                
+            }
+            
+            
+            return recipes
         default:
             throw MealieAPIError.custom("Failed to fetch recipes.")
         }
@@ -126,8 +137,21 @@ final class MealieAPIService {
     
     func fetchRecipeDetails(slug: String) async throws -> Recipe {
         // GET /api/recipes/{recipe_slug}
-        // Transform JSON to Recipe model
-        throw MealieAPIError.custom("Not implemented")
+        let input = Operations.get_one_api_recipes__slug__get.Input(path: .init(slug: slug))
+        let output = try await client!.get_one_api_recipes__slug__get(input)
+        
+        switch output {
+        case .ok(let response):
+            
+            let data: Components.Schemas.Recipe_hyphen_Output = try response.body.json
+            
+            let recipe = Recipe(output: data)
+            
+            return recipe
+            
+        default:
+            throw MealieAPIError.custom("Failed to fetch recipe details.")
+        }
     }
     
     func addRecipeManual(recipeData: [String: Any]) async throws -> Recipe {

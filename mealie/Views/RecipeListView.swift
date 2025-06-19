@@ -2,13 +2,13 @@ import SwiftUI
 import SwiftData
 
 struct RecipeListView: View {
-    // FIX: Explicitly specify the root type <Recipe> for the SortDescriptor.
-    @Query(sort: [SortDescriptor<Recipe>(\.name)]) var recipes: [Recipe]
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Recipe.name) private var recipes: [Recipe]
     @State private var searchText: String = ""
     
     var filteredRecipes: [Recipe] {
         if searchText.isEmpty { return recipes }
-        return recipes.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        return recipes.filter { $0.name!.localizedCaseInsensitiveContains(searchText) }
     }
     
     var body: some View {

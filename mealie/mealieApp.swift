@@ -13,6 +13,11 @@ struct mealieApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
+            Recipe.self,
+            Ingredient.self,
+            Instruction.self,
+            Tag.self,
+            MealPlanEntry.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

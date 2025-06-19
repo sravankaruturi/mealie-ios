@@ -14,4 +14,11 @@ final class Instruction {
         self.text = text
         self.recipe = recipe
     }
+    
+    // Default initializer for SwiftData
+    init() {
+        self.step = 0
+        self.text = ""
+        self.recipe = nil
+    }
 }

@@ -2,30 +2,55 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    // FIX 1: Explicitly specify the root type <Recipe> for the SortDescriptor.
-    @Query(sort: [SortDescriptor<Recipe>(\.name)]) var recipes: [Recipe]
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Recipe.name) private var recipes: [Recipe]
     
-    var favorites: [Recipe] { recipes.filter { $0.isFavorite } }
+    // Remove favorites for now since isFavorite doesn't exist
+    // var favorites: [Recipe] { recipes.filter { $0.isFavorite } }
     
-    // FIX 2: Convert the ArraySlice from .prefix() back to a standard Array.
-    var recentlyViewed: [Recipe] { Array(recipes.sorted { ($0.lastCookedDate ?? .distantPast) > ($1.lastCookedDate ?? .distantPast) }.prefix(5)) }
-    var recentlyAdded: [Recipe] { Array(recipes.sorted { $0.lastModified > $1.lastModified }.prefix(5)) }
+    // Helper function to parse date string to Date for sorting
+    private func parseDate(_ dateString: String?) -> Date {
+        guard let dateString = dateString else { return .distantPast }
+        
+        // Try ISO8601 format first
+        if let date = ISO8601DateFormatter().date(from: dateString) {
+            return date
+        }
+        
+        // Try date-only format (YYYY-MM-DD)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        if let date = dateFormatter.date(from: dateString) {
+            return date
+        }
+        
+        return .distantPast
+    }
+    
+    // Use lastMade instead of lastCookedDate, and dateAdded instead of lastModified
+    var recentlyViewed: [Recipe] { 
+        Array(recipes.sorted { parseDate($0.lastMade) > parseDate($1.lastMade) }.prefix(5)) 
+    }
+    var recentlyAdded: [Recipe] { 
+        Array(recipes.sorted { parseDate($0.dateAdded) > parseDate($1.dateAdded) }.prefix(5)) 
+    }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    if !favorites.isEmpty {
-                        SectionHeader(title: "Favorites")
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                ForEach(favorites) { recipe in
-                                    RecipeCardView(recipe: recipe)
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
+                    // Remove favorites section for now
+                    // if !favorites.isEmpty {
+                    //     SectionHeader(title: "Favorites")
+                    //     ScrollView(.horizontal, showsIndicators: false) {
+                    //         HStack(spacing: 16) {
+                    //             ForEach(favorites) { recipe in
+                    //                 RecipeCardView(recipe: recipe)
+                    //             }
+                    //         }
+                    //         .padding(.horizontal)
+                    //     }
+                    // }
                     
                     if !recentlyViewed.isEmpty {
                         SectionHeader(title: "Recently Viewed")

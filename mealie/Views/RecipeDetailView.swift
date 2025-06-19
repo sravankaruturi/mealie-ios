@@ -5,7 +5,7 @@ struct RecipeDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if let url = recipe.imageURL {
+                if let urlString = recipe.image, let url = URL(string: urlString) {
                     AsyncImage(url: url) { image in
                         image.resizable()
                     } placeholder: {
@@ -16,13 +16,13 @@ struct RecipeDetailView: View {
                     .clipped()
                     .cornerRadius(12)
                 }
-                Text(recipe.name)
+                Text(recipe.name ?? "Untitled Recipe")
                     .font(.largeTitle)
                     .bold()
                 HStack(spacing: 16) {
-                    Label("\(recipe.servings)", systemImage: "person.2")
-                    Label(recipe.prepTime, systemImage: "timer")
-                    Label(recipe.cookTime, systemImage: "flame")
+                    Label("\(recipe.recipeServings)", systemImage: "person.2")
+                    Label(recipe.prepTime ?? "", systemImage: "timer")
+                    Label(recipe.cookTime ?? "", systemImage: "flame")
                 }
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -47,7 +47,7 @@ struct RecipeDetailView: View {
             }
             .padding()
         }
-        .navigationTitle(recipe.name)
+        .navigationTitle(recipe.name ?? "Recipe")
         .navigationBarTitleDisplayMode(.inline)
     }
 } 

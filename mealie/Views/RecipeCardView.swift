@@ -6,7 +6,7 @@ struct RecipeCardView: View {
     var body: some View {
         HStack(spacing: 16) {
             // Placeholder image
-            AsyncImage(url: recipe.imageURL) { image in
+            AsyncImage(url: URL(string: recipe.image ?? "")) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -20,11 +20,11 @@ struct RecipeCardView: View {
             .cornerRadius(8)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(recipe.name)
+                Text(recipe.name ?? "Untitled Recipe")
                     .font(.headline)
                     .lineLimit(2)
                 
-                Text(recipe.summary)
+                Text(recipe.recipeDescription)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
@@ -32,9 +32,11 @@ struct RecipeCardView: View {
                 Spacer()
                 
                 HStack {
-                    Label(recipe.cookTime, systemImage: "flame")
+                    if let cookTime = recipe.cookTime {
+                        Label(cookTime, systemImage: "flame")
+                    }
                     Spacer()
-                    Label(recipe.servings, systemImage: "person.2")
+                    Label("\(recipe.recipeServings) servings", systemImage: "person.2")
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)

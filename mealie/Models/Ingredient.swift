@@ -20,4 +20,14 @@ final class Ingredient {
         self.note = note
         self.recipe = recipe
     }
+    
+    // Default initializer for SwiftData
+    init() {
+        self.name = ""
+        self.quantity = 0.0
+        self.unit = ""
+        self.originalText = ""
+        self.note = ""
+        self.recipe = nil
+    }
 }

@@ -11,4 +11,9 @@ final class Tag {
     init(name: String) {
         self.name = name
     }
+    
+    // Default initializer for SwiftData
+    init() {
+        self.name = ""
+    }
 }

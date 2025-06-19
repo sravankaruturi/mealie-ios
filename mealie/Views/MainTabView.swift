@@ -44,7 +44,7 @@ struct MainTabBodyView : View {
         }
         .onAppear() {
             Task {
-                try? await self.recipesViewModel.syncRecipes()
+                await self.recipesViewModel.syncRecipes()
             }
         }
         
