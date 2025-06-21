@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     let recipe: Recipe
+    @State private var checkedIngredients: Set<Int> = []
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -32,7 +34,23 @@ struct RecipeDetailView: View {
                     Text("Ingredients")
                         .font(.headline)
                     ForEach(recipe.ingredients.sorted { $0.orderIndex < $1.orderIndex }) { ingredient in
-                        Text("• \(ingredient.originalText)")
+                        HStack {
+                            Button(action: {
+                                if checkedIngredients.contains(ingredient.orderIndex) {
+                                    checkedIngredients.remove(ingredient.orderIndex)
+                                } else {
+                                    checkedIngredients.insert(ingredient.orderIndex)
+                                }
+                            }) {
+                                Image(systemName: checkedIngredients.contains(ingredient.orderIndex) ? "checkmark.square.fill" : "square")
+                                    .foregroundColor(checkedIngredients.contains(ingredient.orderIndex) ? .blue : .gray)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            
+                            Text(ingredient.originalText)
+                                .strikethrough(checkedIngredients.contains(ingredient.orderIndex))
+                                .foregroundColor(checkedIngredients.contains(ingredient.orderIndex) ? .secondary : .primary)
+                        }
                     }
                 }
                 VStack(alignment: .leading, spacing: 8) {
