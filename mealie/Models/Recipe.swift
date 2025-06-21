@@ -31,6 +31,9 @@ final class Recipe {
     
     var lastModified: Date
     
+    // User preferences
+    var isFavorite: Bool = false
+    
     @Relationship(deleteRule: .nullify) var categories: [RecipeCategory] = []
     @Relationship(deleteRule: .nullify) var tags: [Tag] = []
     @Relationship(deleteRule: .nullify) var tools: [RecipeTool] = []
@@ -52,9 +55,14 @@ final class Recipe {
         return remoteId
     }
     
+    /// Toggle the favorite status of this recipe
+    func toggleFavorite() {
+        isFavorite.toggle()
+    }
+    
     // MARK: - Initializers
     
-    init(remoteId: String, userId: String, groupId: String, houseHoldId: String, name: String?, slug: String, image: String?, recipeDescription: String, recipeServings: Int, recipeYieldQuantity: Int, recipeYield: String?, totalTime: String?, prepTime: String?, cookTime: String?, performTime: String?, rating: Int?, orgUrl: String?, dateAdded: String?, dateUpdated: String?, createdAt: String?, lastMade: String?, update_at: String?, lastModified: Date = Date(), categories: [RecipeCategory] = [], tags: [Tag] = [], tools: [RecipeTool] = [], ingredients: [Ingredient] = [], instructions: [Instruction] = [], nutrition: RecipeNutrition? = nil, settings: RecipeSettings? = nil, assets: [RecipeAsset] = [], notes: [RecipeNote] = [], extras: String = "", comments: [RecipeComment] = []) {
+    init(remoteId: String, userId: String, groupId: String, houseHoldId: String, name: String?, slug: String, image: String?, recipeDescription: String, recipeServings: Int, recipeYieldQuantity: Int, recipeYield: String?, totalTime: String?, prepTime: String?, cookTime: String?, performTime: String?, rating: Int?, orgUrl: String?, dateAdded: String?, dateUpdated: String?, createdAt: String?, lastMade: String?, update_at: String?, lastModified: Date = Date(), isFavorite: Bool = false, categories: [RecipeCategory] = [], tags: [Tag] = [], tools: [RecipeTool] = [], ingredients: [Ingredient] = [], instructions: [Instruction] = [], nutrition: RecipeNutrition? = nil, settings: RecipeSettings? = nil, assets: [RecipeAsset] = [], notes: [RecipeNote] = [], extras: String = "", comments: [RecipeComment] = []) {
         self.remoteId = remoteId
         self.userId = userId
         self.groupId = groupId
@@ -78,6 +86,7 @@ final class Recipe {
         self.lastMade = lastMade
         self.update_at = update_at
         self.lastModified = lastModified
+        self.isFavorite = isFavorite
         self.categories = categories
         self.tags = tags
         self.tools = tools
@@ -139,7 +148,8 @@ final class Recipe {
             dateUpdated: dateUpdated,
             createdAt: createdAt,
             lastMade: lastMade,
-            update_at: update_at
+            update_at: update_at,
+            isFavorite: false // Default to false for API recipes
         )
     }
     
@@ -189,7 +199,8 @@ final class Recipe {
             dateUpdated: dateUpdated,
             createdAt: createdAt,
             lastMade: lastMade,
-            update_at: update_at
+            update_at: update_at,
+            isFavorite: false // Default to false for API recipes
         )
     }
     
@@ -240,7 +251,8 @@ final class Recipe {
             dateUpdated: dateUpdated,
             createdAt: createdAt,
             lastMade: lastMade,
-            update_at: update_at
+            update_at: update_at,
+            isFavorite: false // Default to false for API recipes
         )
     }
 }

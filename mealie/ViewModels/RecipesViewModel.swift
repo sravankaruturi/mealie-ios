@@ -10,6 +10,7 @@ final class RecipesViewModel {
     let modelContext: ModelContext
     let apiService: MealieAPIService = .shared 
     var recipes: [Recipe]
+    var lastSyncTime: Date?
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -145,34 +146,58 @@ final class RecipesViewModel {
         
     }
     
+    /// Check if we need to sync recipes based on last sync time
+    func shouldSyncRecipes() -> Bool {
+        // If we have no recipes, we definitely need to sync
+        if recipes.isEmpty {
+            return true
+        }
+        
+        // If we've never synced, we need to sync
+        guard let lastSync = lastSyncTime else {
+            return true
+        }
+        
+        // Check if it's been more than 5 minutes since last sync
+        let timeSinceLastSync = Date().timeIntervalSince(lastSync)
+        let fiveMinutes: TimeInterval = 5 * 60
+        
+        return timeSinceLastSync > fiveMinutes
+    }
+    
     func syncRecipes() async {
         
-        testDecoding()
+        // testDecoding()
         
         isSyncing = true
         error = nil
         defer { isSyncing = false }
         do {
             
-            let remoteRecipes = try await apiService.fetchAllRecipes()
+            // Use optimized fetching that only downloads full details for updated recipes
+            let remoteRecipes = try await apiService.fetchAllRecipesOptimized(existingRecipes: recipes)
             
-            // Save to SwiftData (local-first)
-            for recipe in remoteRecipes {
-                
-                guard let index = recipes.firstIndex(of: recipe) else {
-                    print("New recipe: \(recipe.name)")
-                    modelContext.insert(recipe);
-                    continue
+            // Ensure all SwiftData operations happen on the main actor
+            await MainActor.run {
+                // Clear existing recipes and add the optimized results
+                // This approach is simpler and more efficient than the previous merge logic
+                for recipe in recipes {
+                    modelContext.delete(recipe)
                 }
                 
-                if recipe.lastModified > recipes[index].lastModified {
-                    recipes[index] = recipe
-                } else {
-                    // TODO: Make a call to update the remote server.
+                for recipe in remoteRecipes {
+                    modelContext.insert(recipe)
                 }
                 
+                try? modelContext.save()
+                
+                // Update our local recipes array
+                self.recipes = remoteRecipes
+                
+                // Update last sync time
+                self.lastSyncTime = Date()
             }
-            try modelContext.save()
+            
         } catch {
             self.error = error.localizedDescription
             print(self.error)

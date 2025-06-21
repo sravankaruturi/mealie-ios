@@ -40,9 +40,11 @@ final class AddRecipeViewModel {
         ]
         do {
             let recipe = try await apiService.addRecipeManual(recipeData: recipeData)
-            modelContext.insert(recipe)
-            try modelContext.save()
-            showSuccess = true
+            await MainActor.run {
+                modelContext.insert(recipe)
+                try? modelContext.save()
+                showSuccess = true
+            }
         } catch {
             self.error = error.localizedDescription
         }
@@ -54,9 +56,11 @@ final class AddRecipeViewModel {
         defer { isLoading = false }
         do {
             let recipe = try await apiService.addRecipeFromURL(url: url)
-            modelContext.insert(recipe)
-            try modelContext.save()
-            showSuccess = true
+            await MainActor.run {
+                modelContext.insert(recipe)
+                try? modelContext.save()
+                showSuccess = true
+            }
         } catch {
             self.error = error.localizedDescription
         }
