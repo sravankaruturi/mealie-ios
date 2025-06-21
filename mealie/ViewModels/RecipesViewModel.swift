@@ -203,4 +203,34 @@ final class RecipesViewModel {
             print(self.error)
         }
     }
+
+    func forceSyncRecipes() async {
+        isSyncing = true
+        error = nil
+        defer { isSyncing = false }
+        do {
+            
+            let remoteRecipes = try await apiService.fetchAllRecipes()
+            
+            await MainActor.run {
+                for recipe in recipes {
+                    modelContext.delete(recipe)
+                }
+                
+                for recipe in remoteRecipes {
+                    modelContext.insert(recipe)
+                }
+                
+                try? modelContext.save()
+                
+                self.recipes = remoteRecipes
+                
+                self.lastSyncTime = Date()
+            }
+            
+        } catch {
+            self.error = error.localizedDescription
+            print(self.error)
+        }
+    }
 }

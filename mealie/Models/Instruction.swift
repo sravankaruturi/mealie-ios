@@ -21,4 +21,12 @@ final class Instruction {
         self.text = ""
         self.recipe = nil
     }
+
+    // MARK: - Convenience Initializer for API Type
+    convenience init(from apiObject: Components.Schemas.RecipeStep, step: Int) {
+        self.init(
+            step: step,
+            text: apiObject.text
+        )
+    }
 }

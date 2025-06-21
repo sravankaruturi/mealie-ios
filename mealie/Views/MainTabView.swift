@@ -25,7 +25,7 @@ struct MainTabBodyView : View {
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
-            RecipeListView()
+            RecipeListView(recipesViewModel: recipesViewModel)
                 .tabItem {
                     Label("Recipes", systemImage: "book")
                 }

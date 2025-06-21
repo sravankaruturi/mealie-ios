@@ -30,4 +30,26 @@ final class Ingredient {
         self.note = ""
         self.recipe = nil
     }
+
+    // MARK: - Convenience Initializer for API Type
+    convenience init(from apiObject: Components.Schemas.RecipeIngredient_hyphen_Output) {
+        let displayText = apiObject.display ?? ""
+        if let parsed = IngredientParser.parse(displayText) {
+            self.init(
+                name: parsed.name,
+                quantity: parsed.quantity,
+                unit: parsed.unit,
+                originalText: displayText,
+                note: apiObject.note ?? ""
+            )
+        } else {
+            self.init(
+                name: displayText,
+                quantity: 1,
+                unit: "",
+                originalText: displayText,
+                note: apiObject.note ?? ""
+            )
+        }
+    }
 }

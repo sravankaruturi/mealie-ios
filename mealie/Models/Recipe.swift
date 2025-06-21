@@ -126,6 +126,11 @@ final class Recipe {
         let lastMade = output.lastMade
         let update_at = output.updatedAt // Note: Recipe-Output uses updatedAt, not update_at
         
+        let ingredients = output.recipeIngredient?.compactMap { Ingredient(from: $0) } ?? []
+        let instructions = output.recipeInstructions?.enumerated().compactMap { index, instruction_object in
+            Instruction(from: instruction_object, step: index + 1)
+        } ?? []
+
         self.init(
             remoteId: remoteId,
             userId: userId,
@@ -149,7 +154,9 @@ final class Recipe {
             createdAt: createdAt,
             lastMade: lastMade,
             update_at: update_at,
-            isFavorite: false // Default to false for API recipes
+            isFavorite: false, // Default to false for API recipes
+            ingredients: ingredients,
+            instructions: instructions
         )
     }
     

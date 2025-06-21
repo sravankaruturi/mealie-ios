@@ -2,13 +2,12 @@ import SwiftUI
 import SwiftData
 
 struct RecipeListView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Recipe.name) private var recipes: [Recipe]
+    @State var recipesViewModel: RecipesViewModel
     @State private var searchText: String = ""
     
     var filteredRecipes: [Recipe] {
-        if searchText.isEmpty { return recipes }
-        return recipes.filter { $0.name!.localizedCaseInsensitiveContains(searchText) }
+        if searchText.isEmpty { return recipesViewModel.recipes }
+        return recipesViewModel.recipes.filter { $0.name!.localizedCaseInsensitiveContains(searchText) }
     }
     
     var body: some View {
@@ -21,6 +20,17 @@ struct RecipeListView: View {
             .listStyle(.plain)
             .navigationTitle("Recipes")
             .searchable(text: $searchText, prompt: "Search Recipes")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        Task {
+                            await recipesViewModel.forceSyncRecipes()
+                        }
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+            }
         }
     }
 }
