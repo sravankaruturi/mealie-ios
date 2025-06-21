@@ -26,6 +26,7 @@ struct HomeView: View {
                             HStack(spacing: 16) {
                                 ForEach(favorites) { recipe in
                                     RecipeCardView(recipe: recipe)
+                                        .frame(maxWidth: 160)
                                 }
                             }
                             .padding(.horizontal)
@@ -38,6 +39,7 @@ struct HomeView: View {
                             HStack(spacing: 16) {
                                 ForEach(recentlyViewed) { recipe in
                                     RecipeCardView(recipe: recipe)
+                                        .frame(maxWidth: 160)
                                 }
                             }
                             .padding(.horizontal)
