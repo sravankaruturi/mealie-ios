@@ -3,6 +3,7 @@ import SwiftData
 
 @Model
 final class Ingredient {
+    var orderIndex: Int
     var name: String
     var quantity: Double
     var unit: String
@@ -13,7 +14,8 @@ final class Ingredient {
     @Relationship(inverse: \Recipe.ingredients)
     var recipe: Recipe?
     
-    init(name: String, quantity: Double, unit: String, originalText: String, note: String, recipe: Recipe? = nil) {
+    init(orderIndex: Int, name: String, quantity: Double, unit: String, originalText: String, note: String, recipe: Recipe? = nil) {
+        self.orderIndex = orderIndex
         self.name = name
         self.quantity = quantity
         self.unit = unit
@@ -24,6 +26,7 @@ final class Ingredient {
     
     // Default initializer for SwiftData
     init() {
+        self.orderIndex = 0
         self.name = ""
         self.quantity = 0.0
         self.unit = ""
@@ -33,10 +36,11 @@ final class Ingredient {
     }
 
     // MARK: - Convenience Initializer for API Type
-    convenience init(from apiObject: Components.Schemas.RecipeIngredient_hyphen_Output) {
+    convenience init(from apiObject: Components.Schemas.RecipeIngredient_hyphen_Output, index: Int) {
         let displayText = apiObject.display ?? ""
         if let parsed = IngredientParser.parse(displayText) {
             self.init(
+                orderIndex: index,
                 name: parsed.name,
                 quantity: parsed.quantity,
                 unit: parsed.unit,
@@ -45,6 +49,7 @@ final class Ingredient {
             )
         } else {
             self.init(
+                orderIndex: index,
                 name: displayText,
                 quantity: 1,
                 unit: "",

@@ -29,7 +29,7 @@ struct RecipeDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Ingredients")
                         .font(.headline)
-                    ForEach(recipe.ingredients) { ingredient in
+                    ForEach(recipe.ingredients.sorted { $0.orderIndex < $1.orderIndex }) { ingredient in
                         Text("• \(ingredient.originalText)")
                     }
                 }

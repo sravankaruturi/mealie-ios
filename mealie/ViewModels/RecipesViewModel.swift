@@ -210,6 +210,7 @@ final class RecipesViewModel {
 
                     localRecipe.ingredients = remoteRecipe.ingredients.map { remoteIngredient in
                         let newIngredient = Ingredient(
+                            orderIndex: remoteIngredient.orderIndex,
                             name: remoteIngredient.name,
                             quantity: remoteIngredient.quantity,
                             unit: remoteIngredient.unit,

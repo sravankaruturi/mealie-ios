@@ -42,7 +42,7 @@ struct ManualRecipeFormContentView: View {
                     .onDelete { viewModel.ingredients.remove(atOffsets: $0) }
                     
                     Button("Add Ingredient") {
-                        viewModel.ingredients.append(Ingredient(name: "", quantity: 0, unit: "", originalText: "", note: ""))
+                        viewModel.ingredients.append(Ingredient(orderIndex: viewModel.ingredients.count, name: "", quantity: 0, unit: "", originalText: "", note: ""))
                     }
                 }
                 Section(header: Text("Instructions")) {

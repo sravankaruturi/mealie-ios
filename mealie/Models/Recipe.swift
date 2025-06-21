@@ -154,8 +154,8 @@ final class Recipe {
         
         // Manually create and link the ingredients and instructions
         if let apiIngredients = output.recipeIngredient {
-            self.ingredients = apiIngredients.map {
-                let ingredient = Ingredient(from: $0)
+            self.ingredients = apiIngredients.enumerated().map { index, apiIngredient in
+                let ingredient = Ingredient(from: apiIngredient, index: index)
                 ingredient.recipe = self
                 return ingredient
             }
