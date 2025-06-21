@@ -19,10 +19,12 @@ struct RecipeDetailView: View {
                 Text(recipe.name ?? "Untitled Recipe")
                     .font(.largeTitle)
                     .bold()
+                // NOTE: The Mealie web interface uses 'performTime' to display what is conceptually the "Cook Time".
+                // We are matching that behavior here instead of using the 'cookTime' field.
                 HStack(spacing: 16) {
                     Label("\(recipe.recipeServings)", systemImage: "person.2")
                     Label(recipe.prepTime ?? "", systemImage: "timer")
-                    Label(recipe.cookTime ?? "", systemImage: "flame")
+                    Label(recipe.performTime ?? "", systemImage: "flame")
                 }
                 .font(.subheadline)
                 .foregroundColor(.secondary)
