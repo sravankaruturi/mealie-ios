@@ -170,6 +170,48 @@ final class MealieAPIService {
         throw MealieAPIError.custom("Not implemented")
     }
     
+    // MARK: - Images
+    func getRecipeImageURL(recipeId: String, imageType: ImageType = .original) -> URL? {
+        guard let serverURL = serverURL else { return nil }
+        return serverURL.appendingPathComponent("api/media/recipes/\(recipeId)/images/\(imageType.rawValue)")
+    }
+    
+//    // MARK: - OpenAPI Generated Image Functions
+//    func fetchRecipeImageOpenAPI(recipeId: String, imageType: ImageType = .original) async throws -> Data {
+//        guard let client = client else {
+//            throw MealieAPIError.custom("Client not initialized")
+//        }
+//        
+//        let input = Operations.get_recipe_img_api_media_recipes__recipe_id__images__file_name__get.Input(
+//            path: .init(
+//                recipe_id: recipeId,
+//                file_name: Components.Schemas.ImageType(rawValue: imageType.rawValue) ?? .min_hyphen_original_period_webp
+//            )
+//        )
+//        
+//        let output = try await client.get_recipe_img_api_media_recipes__recipe_id__images__file_name__get(input)
+//        
+//        switch output {
+//        case .ok(let response):
+//            // The response body should contain the image data
+//            // TODO: I think the OpenAPI Spec is wrong here. It says it will return a Json file. But I get the file.
+//            return response.body
+//        default:
+//            throw MealieAPIError.custom("Failed to fetch recipe image")
+//        }
+//    }
+    
+    // MARK: - Kingfisher Integration
+    func getRecipeImageURLForKingfisher(recipeId: String, imageType: ImageType = .original) -> URL? {
+        return getRecipeImageURL(recipeId: recipeId, imageType: imageType)
+    }
+    
+    enum ImageType: String, CaseIterable {
+        case original = "original.webp"
+        case minOriginal = "min-original.webp"
+        case tinyOriginal = "tiny-original.webp"
+    }
+    
     // MARK: - Delete
     func deleteRecipe(slug: String) async throws {
         // DELETE /api/recipes/{recipe_slug}

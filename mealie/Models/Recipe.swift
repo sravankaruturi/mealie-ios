@@ -45,6 +45,13 @@ final class Recipe {
     var extras: String = "" // Using string instead of [String: Any] for SwiftData compatibility
     var comments: [RecipeComment] = []
     
+    // MARK: - Computed Properties
+    
+    /// The API ID used for image URLs and other API calls
+    var apiId: String {
+        return remoteId
+    }
+    
     // MARK: - Initializers
     
     init(remoteId: String, userId: String, groupId: String, houseHoldId: String, name: String?, slug: String, image: String?, recipeDescription: String, recipeServings: Int, recipeYieldQuantity: Int, recipeYield: String?, totalTime: String?, prepTime: String?, cookTime: String?, performTime: String?, rating: Int?, orgUrl: String?, dateAdded: String?, dateUpdated: String?, createdAt: String?, lastMade: String?, update_at: String?, lastModified: Date = Date(), categories: [RecipeCategory] = [], tags: [Tag] = [], tools: [RecipeTool] = [], ingredients: [Ingredient] = [], instructions: [Instruction] = [], nutrition: RecipeNutrition? = nil, settings: RecipeSettings? = nil, assets: [RecipeAsset] = [], notes: [RecipeNote] = [], extras: String = "", comments: [RecipeComment] = []) {

@@ -1,23 +1,21 @@
 import SwiftUI
+import Kingfisher
 
 struct RecipeCardView: View {
     let recipe: Recipe
 
     var body: some View {
         HStack(spacing: 16) {
-            // Placeholder image
-            AsyncImage(url: URL(string: recipe.image ?? "")) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 80, height: 80)
-                    .clipped()
-            } placeholder: {
-                Rectangle()
-                    .foregroundColor(.gray.opacity(0.3))
-                    .frame(width: 80, height: 80)
-            }
-            .cornerRadius(8)
+            // Recipe image using Kingfisher
+            RecipeImageView(
+                recipeId: recipe.apiId,
+                imageType: .minOriginal, // Use medium size for cards
+                placeholder: Image(systemName: "photo"),
+                contentMode: .fill,
+                cornerRadius: 8
+            )
+            .frame(width: 80, height: 80)
+            .clipped()
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.name ?? "Untitled Recipe")
