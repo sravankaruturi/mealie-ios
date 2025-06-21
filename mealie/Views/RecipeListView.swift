@@ -16,6 +16,7 @@ struct RecipeListView: View {
                 NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
                     RecipeCardView(recipe: recipe)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
             .listStyle(.plain)
             .navigationTitle("Recipes")

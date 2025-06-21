@@ -25,8 +25,11 @@ struct HomeView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(favorites) { recipe in
-                                    RecipeCardView(recipe: recipe)
-                                        .frame(maxWidth: 160)
+                                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
+                                        RecipeCardView(recipe: recipe)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .frame(maxWidth: 160)
                                 }
                             }
                             .padding(.horizontal)
@@ -38,8 +41,11 @@ struct HomeView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(recentlyViewed) { recipe in
-                                    RecipeCardView(recipe: recipe)
-                                        .frame(maxWidth: 160)
+                                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
+                                        RecipeCardView(recipe: recipe)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .frame(maxWidth: 160)
                                 }
                             }
                             .padding(.horizontal)
@@ -50,7 +56,10 @@ struct HomeView: View {
                         SectionHeader(title: "Recently Added")
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 16) {
                             ForEach(recentlyAdded) { recipe in
-                                RecipeCardView(recipe: recipe)
+                                NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
+                                    RecipeCardView(recipe: recipe)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal)
