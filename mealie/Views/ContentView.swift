@@ -29,6 +29,7 @@ struct ContentView: View {
                 if ToastManager.shared.isShowingToast, let toast = ToastManager.shared.currentToast {
                     toast
                         .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, authState.isLoggedIn ? 83 : 0)
                 }
             }
         }
