@@ -165,42 +165,47 @@ final class RecipesViewModel {
         return timeSinceLastSync > fiveMinutes
     }
     
+    private func updateLocalStore(with remoteRecipes: [Recipe]) async {
+        await MainActor.run {
+            // This approach is simpler than a complex merge, but requires robust saving.
+            for recipe in recipes {
+                modelContext.delete(recipe)
+            }
+            
+            for recipe in remoteRecipes {
+                modelContext.insert(recipe)
+            }
+            
+            do {
+                try modelContext.save()
+            } catch {
+                let errorMessage = "Failed to save recipes to the local database: \(error.localizedDescription)"
+                self.error = errorMessage
+                print(errorMessage)
+                ToastManager.shared.showError(errorMessage)
+                return // Halt execution if we can't save
+            }
+            
+            // Update our local recipes array to match the newly saved state
+            self.recipes = remoteRecipes
+            
+            // Update last sync time
+            self.lastSyncTime = Date()
+        }
+    }
+
     func syncRecipes() async {
-        
-        // testDecoding()
-        
         isSyncing = true
         error = nil
         defer { isSyncing = false }
         do {
-            
-            // Use optimized fetching that only downloads full details for updated recipes
+            // Use optimized fetching
             let remoteRecipes = try await apiService.fetchAllRecipesOptimized(existingRecipes: recipes)
-            
-            // Ensure all SwiftData operations happen on the main actor
-            await MainActor.run {
-                // Clear existing recipes and add the optimized results
-                // This approach is simpler and more efficient than the previous merge logic
-                for recipe in recipes {
-                    modelContext.delete(recipe)
-                }
-                
-                for recipe in remoteRecipes {
-                    modelContext.insert(recipe)
-                }
-                
-                try? modelContext.save()
-                
-                // Update our local recipes array
-                self.recipes = remoteRecipes
-                
-                // Update last sync time
-                self.lastSyncTime = Date()
-            }
+            await updateLocalStore(with: remoteRecipes)
             
         } catch {
             self.error = error.localizedDescription
-            print(self.error)
+            print(self.error!)
         }
     }
 
@@ -209,28 +214,13 @@ final class RecipesViewModel {
         error = nil
         defer { isSyncing = false }
         do {
-            
+            // Fetch all recipes without optimization
             let remoteRecipes = try await apiService.fetchAllRecipes()
-            
-            await MainActor.run {
-                for recipe in recipes {
-                    modelContext.delete(recipe)
-                }
-                
-                for recipe in remoteRecipes {
-                    modelContext.insert(recipe)
-                }
-                
-                try? modelContext.save()
-                
-                self.recipes = remoteRecipes
-                
-                self.lastSyncTime = Date()
-            }
+            await updateLocalStore(with: remoteRecipes)
             
         } catch {
             self.error = error.localizedDescription
-            print(self.error)
+            print(self.error!)
         }
     }
 }
