@@ -124,12 +124,7 @@ final class Recipe {
         let dateUpdated = output.dateUpdated
         let createdAt = output.createdAt
         let lastMade = output.lastMade
-        let update_at = output.updatedAt // Note: Recipe-Output uses updatedAt, not update_at
-        
-        let ingredients = output.recipeIngredient?.compactMap { Ingredient(from: $0) } ?? []
-        let instructions = output.recipeInstructions?.enumerated().compactMap { index, instruction_object in
-            Instruction(from: instruction_object, step: index + 1)
-        } ?? []
+        let update_at = output.updatedAt
 
         self.init(
             remoteId: remoteId,
@@ -154,10 +149,25 @@ final class Recipe {
             createdAt: createdAt,
             lastMade: lastMade,
             update_at: update_at,
-            isFavorite: false, // Default to false for API recipes
-            ingredients: ingredients,
-            instructions: instructions
+            isFavorite: false
         )
+        
+        // Manually create and link the ingredients and instructions
+        if let apiIngredients = output.recipeIngredient {
+            self.ingredients = apiIngredients.map {
+                let ingredient = Ingredient(from: $0)
+                ingredient.recipe = self
+                return ingredient
+            }
+        }
+
+        if let apiInstructions = output.recipeInstructions {
+            self.instructions = apiInstructions.enumerated().map { index, apiInstruction in
+                let instruction = Instruction(from: apiInstruction, step: index + 1)
+                instruction.recipe = self
+                return instruction
+            }
+        }
     }
     
     convenience init(input: Components.Schemas.Recipe_hyphen_Input) {
@@ -183,58 +193,6 @@ final class Recipe {
         let createdAt = input.createdAt
         let lastMade = input.lastMade
         let update_at = input.update_at // Recipe-Input uses update_at
-        
-        self.init(
-            remoteId: remoteId,
-            userId: userId,
-            groupId: groupId,
-            houseHoldId: houseHoldId,
-            name: name,
-            slug: slug,
-            image: image,
-            recipeDescription: recipeDescription,
-            recipeServings: recipeServings,
-            recipeYieldQuantity: recipeYieldQuantity,
-            recipeYield: recipeYield,
-            totalTime: totalTime,
-            prepTime: prepTime,
-            cookTime: cookTime,
-            performTime: performTime,
-            rating: rating,
-            orgUrl: orgUrl,
-            dateAdded: dateAdded,
-            dateUpdated: dateUpdated,
-            createdAt: createdAt,
-            lastMade: lastMade,
-            update_at: update_at,
-            isFavorite: false // Default to false for API recipes
-        )
-    }
-    
-    convenience init(summary: Components.Schemas.RecipeSummary) {
-        let remoteId = summary.id ?? UUID().uuidString
-        let userId = summary.userId ?? ""
-        let groupId = summary.groupId ?? ""
-        let houseHoldId = summary.householdId ?? ""
-        let name = summary.name
-        let slug = summary.slug ?? ""
-        let image = summary.image.map { String(describing: $0) }
-        let recipeDescription = summary.description ?? ""
-        let recipeServings = Int(summary.recipeServings ?? 0)
-        let recipeYieldQuantity = Int(summary.recipeYieldQuantity ?? 0)
-        let recipeYield = summary.recipeYield
-        let totalTime = summary.totalTime
-        let prepTime = summary.prepTime
-        let cookTime = summary.cookTime
-        let performTime = summary.performTime
-        // RecipeSummary doesn't have these fields, so use defaults
-        let rating: Int? = nil
-        let orgUrl: String? = nil
-        let dateAdded: String? = nil
-        let dateUpdated: String? = nil
-        let createdAt: String? = nil
-        let lastMade: String? = nil
-        let update_at: String? = nil
         
         self.init(
             remoteId: remoteId,

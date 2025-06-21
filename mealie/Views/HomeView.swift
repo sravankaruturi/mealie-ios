@@ -60,6 +60,7 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear {
+                AppLogger.logRecipes(Array(recipes), context: "HomeView onAppear")
                 print("🏠 HomeView appeared with \(recipes.count) recipes, hasSyncedFavorites: \(hasSyncedFavorites)")
                 // Sync favorites from server on first load
                 if !hasSyncedFavorites && !recipes.isEmpty {
@@ -78,6 +79,7 @@ struct HomeView: View {
                 }
             }
             .onChange(of: recipes.count) { oldCount, newCount in
+                AppLogger.logRecipes(Array(recipes), context: "HomeView onChange")
                 print("📊 Recipes count changed from \(oldCount) to \(newCount)")
                 // If recipes were loaded and we haven't synced favorites yet, do it now
                 if newCount > 0 && !hasSyncedFavorites {

@@ -173,7 +173,7 @@ final class MealieAPIService {
                         areDatesEffectivelyEqual = (serverDate == nil && localDate == nil)
                     }
 
-                    if areDatesEffectivelyEqual && !existingRecipe.ingredients.isEmpty {
+                    if areDatesEffectivelyEqual && !existingRecipe.ingredients.isEmpty && !existingRecipe.instructions.isEmpty {
                         // Recipe hasn't changed, use existing data
                         updatedRecipes.append(existingRecipe)
                         cachedCount += 1

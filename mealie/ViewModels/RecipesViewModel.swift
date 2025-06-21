@@ -14,7 +14,8 @@ final class RecipesViewModel {
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.recipes = try! modelContext.fetch(FetchDescriptor<Recipe>())
+        self.recipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
+        AppLogger.logRecipes(self.recipes, context: "RecipesViewModel Initialized")
     }
     
     func testDecoding() {
@@ -166,30 +167,86 @@ final class RecipesViewModel {
     }
     
     private func updateLocalStore(with remoteRecipes: [Recipe]) async {
+        AppLogger.logRecipes(remoteRecipes, context: "updateLocalStore - Remote data received")
         await MainActor.run {
-            // This approach is simpler than a complex merge, but requires robust saving.
-            for recipe in recipes {
+            let localRecipes = self.recipes
+            let remoteRecipesDict = Dictionary(uniqueKeysWithValues: remoteRecipes.map { ($0.remoteId, $0) })
+            let localRecipesDict = Dictionary(uniqueKeysWithValues: localRecipes.map { ($0.remoteId, $0) })
+            
+            // Identify recipes to delete, update, and insert
+            let recipesToDelete = localRecipes.filter { remoteRecipesDict[$0.remoteId] == nil }
+            let recipesToInsert = remoteRecipes.filter { localRecipesDict[$0.remoteId] == nil }
+            let recipesToUpdate = remoteRecipes.filter { localRecipesDict[$0.remoteId] != nil }
+            
+            // Perform deletions
+            for recipe in recipesToDelete {
                 modelContext.delete(recipe)
             }
             
-            for recipe in remoteRecipes {
+            // Perform insertions
+            for recipe in recipesToInsert {
                 modelContext.insert(recipe)
             }
             
+            // Perform updates
+            for remoteRecipe in recipesToUpdate {
+                if let localRecipe = localRecipesDict[remoteRecipe.remoteId] {
+                    // Update properties
+                    localRecipe.name = remoteRecipe.name
+                    localRecipe.slug = remoteRecipe.slug
+                    localRecipe.image = remoteRecipe.image
+                    localRecipe.recipeDescription = remoteRecipe.recipeDescription
+                    localRecipe.recipeServings = remoteRecipe.recipeServings
+                    localRecipe.recipeYield = remoteRecipe.recipeYield
+                    localRecipe.totalTime = remoteRecipe.totalTime
+                    localRecipe.prepTime = remoteRecipe.prepTime
+                    localRecipe.cookTime = remoteRecipe.cookTime
+                    localRecipe.dateUpdated = remoteRecipe.dateUpdated
+                    
+                    // Update relationships by deleting old children and creating new ones.
+                    // This is safer than re-linking existing objects.
+                    localRecipe.ingredients.forEach { modelContext.delete($0) }
+                    localRecipe.instructions.forEach { modelContext.delete($0) }
+
+                    localRecipe.ingredients = remoteRecipe.ingredients.map { remoteIngredient in
+                        let newIngredient = Ingredient(
+                            name: remoteIngredient.name,
+                            quantity: remoteIngredient.quantity,
+                            unit: remoteIngredient.unit,
+                            originalText: remoteIngredient.originalText,
+                            note: remoteIngredient.note
+                        )
+                        newIngredient.recipe = localRecipe
+                        return newIngredient
+                    }
+                    
+                    localRecipe.instructions = remoteRecipe.instructions.map { remoteInstruction in
+                        let newInstruction = Instruction(
+                            step: remoteInstruction.step,
+                            text: remoteInstruction.text
+                        )
+                        newInstruction.recipe = localRecipe
+                        return newInstruction
+                    }
+                }
+            }
+            
+            // Save changes
             do {
                 try modelContext.save()
             } catch {
-                let errorMessage = "Failed to save recipes to the local database: \(error.localizedDescription)"
+                let errorMessage = "Failed to sync recipes to the local database: \(error.localizedDescription)"
                 self.error = errorMessage
                 print(errorMessage)
                 ToastManager.shared.showError(errorMessage)
-                return // Halt execution if we can't save
+                return
             }
             
-            // Update our local recipes array to match the newly saved state
-            self.recipes = remoteRecipes
+            // Update the view model's recipe list to reflect the latest state
+            let finalRecipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
+            self.recipes = finalRecipes
+            AppLogger.logRecipes(finalRecipes, context: "updateLocalStore - Local data updated")
             
-            // Update last sync time
             self.lastSyncTime = Date()
         }
     }

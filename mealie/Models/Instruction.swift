@@ -7,6 +7,7 @@ final class Instruction {
     var text: String
     // By removing the @Relationship macro here, we break the circular dependency for the compiler.
     // SwiftData will infer the inverse relationship from the 'instructions' property in the Recipe model.
+    @Relationship(inverse: \Recipe.instructions)
     var recipe: Recipe?
     
     init(step: Int, text: String, recipe: Recipe? = nil) {

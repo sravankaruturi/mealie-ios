@@ -10,6 +10,7 @@ final class Ingredient {
     var note: String
     // By removing the @Relationship macro here, we break the circular dependency for the compiler.
     // SwiftData will infer the inverse relationship from the 'ingredients' property in the Recipe model.
+    @Relationship(inverse: \Recipe.ingredients)
     var recipe: Recipe?
     
     init(name: String, quantity: Double, unit: String, originalText: String, note: String, recipe: Recipe? = nil) {
