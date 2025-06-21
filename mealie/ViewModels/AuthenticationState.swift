@@ -26,6 +26,7 @@ final class AuthenticationState {
                 print( "Server URL not found in keychain. Logging Out")
                 keychainService.deleteToken()
                 isLoggedIn = false
+                ToastManager.shared.showError("Server URL not found. Please log in again.")
             }
         }
     }
@@ -39,5 +40,9 @@ final class AuthenticationState {
     func logout() {
         keychainService.deleteToken()
         isLoggedIn = false
+    }
+    
+    var hasServerURLIssue: Bool {
+        return keychainService.getToken() != nil && keychainService.getServerURL() == nil
     }
 }

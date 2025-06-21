@@ -10,7 +10,6 @@ final class LoginViewModel {
     var username: String = ""
     var password: String = ""
     var isLoading: Bool = false
-    var error: String?
     
     // NOTE: You'll need to implement the MealieAPIService and KeychainService
     // for this ViewModel to be fully functional.
@@ -21,7 +20,6 @@ final class LoginViewModel {
     
     func authenticate() async {
         isLoading = true
-        error = nil
         defer { isLoading = false }
         
         // Normalize the server URL: trim whitespace and remove all trailing slashes
@@ -32,7 +30,7 @@ final class LoginViewModel {
         }
         
         guard let url = URL(string: normalizedURLString) else {
-            error = "Invalid server URL."
+            ToastManager.shared.showError("Invalid server URL.")
             return
         }
         
@@ -42,8 +40,9 @@ final class LoginViewModel {
         do {
             let token = try await api.login(username: username, password: password)
             authState.login(token: token, serverURL: url)
+            ToastManager.shared.showSuccess("Login successful!")
         } catch {
-            self.error = error.localizedDescription
+            ToastManager.shared.showError(error.localizedDescription)
         }
     }
 }

@@ -14,14 +14,22 @@ struct ContentView: View {
             } else {
                 LoginView()
             }
-            if showPasteboardBanner, let url = pasteboardURL {
-                PasteboardImportBanner(url: url, onImport: {
-                    // Handle import
-                    showPasteboardBanner = false
-                }, onDismiss: {
-                    showPasteboardBanner = false
-                })
-                .transition(.move(edge: .bottom))
+            
+            VStack(spacing: 0) {
+                if showPasteboardBanner, let url = pasteboardURL {
+                    PasteboardImportBanner(url: url, onImport: {
+                        // Handle import
+                        showPasteboardBanner = false
+                    }, onDismiss: {
+                        showPasteboardBanner = false
+                    })
+                    .transition(.move(edge: .bottom))
+                }
+                
+                if ToastManager.shared.isShowingToast, let toast = ToastManager.shared.currentToast {
+                    toast
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
@@ -31,5 +39,6 @@ struct ContentView: View {
             }
         }
         .environment(authState)
+        .environment(ToastManager.shared)
     }
 } 

@@ -58,11 +58,7 @@ struct LoginBodyView: View {
             }
             .buttonStyle(.borderedProminent)
             .disabled(viewModel.isLoading)
-            if let error = viewModel.error {
-                Text(error)
-                    .foregroundColor(.red)
-                    .multilineTextAlignment(.center)
-            }
+            
             Spacer()
             Text("By clicking continue, you agree to our Terms of Service and Privacy Policy.")
                 .font(.footnote)

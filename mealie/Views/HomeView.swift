@@ -96,8 +96,12 @@ struct HomeView: View {
             try? modelContext.save()
             hasSyncedFavorites = true
             print("✅ Favorites sync completed successfully")
+            
+            // Show toast message when sync is completed for the first time
+            ToastManager.shared.showInfo("Favorites synced successfully! Your saved recipes are now up to date.")
         } catch {
             print("❌ Failed to sync favorites from server: \(error)")
+            ToastManager.shared.showError("Failed to sync favorites: \(error.localizedDescription)")
         }
     }
 }
