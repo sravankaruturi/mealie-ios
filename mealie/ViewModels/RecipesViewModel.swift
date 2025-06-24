@@ -215,7 +215,8 @@ final class RecipesViewModel {
                             quantity: remoteIngredient.quantity,
                             unit: remoteIngredient.unit,
                             originalText: remoteIngredient.originalText,
-                            note: remoteIngredient.note
+                            note: remoteIngredient.note,
+                            title: remoteIngredient.title
                         )
                         newIngredient.recipe = localRecipe
                         return newIngredient
@@ -224,7 +225,8 @@ final class RecipesViewModel {
                     localRecipe.instructions = remoteRecipe.instructions.map { remoteInstruction in
                         let newInstruction = Instruction(
                             step: remoteInstruction.step,
-                            text: remoteInstruction.text
+                            text: remoteInstruction.text,
+                            title: remoteInstruction.title
                         )
                         newInstruction.recipe = localRecipe
                         return newInstruction

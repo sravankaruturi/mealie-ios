@@ -9,18 +9,20 @@ final class Ingredient {
     var unit: String
     var originalText: String
     var note: String
+    var title: String? // Section title for grouping ingredients
     // By removing the @Relationship macro here, we break the circular dependency for the compiler.
     // SwiftData will infer the inverse relationship from the 'ingredients' property in the Recipe model.
     @Relationship(inverse: \Recipe.ingredients)
     var recipe: Recipe?
     
-    init(orderIndex: Int, name: String, quantity: Double, unit: String, originalText: String, note: String, recipe: Recipe? = nil) {
+    init(orderIndex: Int, name: String, quantity: Double, unit: String, originalText: String, note: String, title: String? = nil, recipe: Recipe? = nil) {
         self.orderIndex = orderIndex
         self.name = name
         self.quantity = quantity
         self.unit = unit
         self.originalText = originalText
         self.note = note
+        self.title = title
         self.recipe = recipe
     }
     
@@ -32,6 +34,7 @@ final class Ingredient {
         self.unit = ""
         self.originalText = ""
         self.note = ""
+        self.title = nil
         self.recipe = nil
     }
 
@@ -45,7 +48,8 @@ final class Ingredient {
                 quantity: parsed.quantity,
                 unit: parsed.unit,
                 originalText: displayText,
-                note: apiObject.note ?? ""
+                note: apiObject.note ?? "",
+                title: apiObject.title
             )
         } else {
             self.init(
@@ -54,7 +58,8 @@ final class Ingredient {
                 quantity: 1,
                 unit: "",
                 originalText: displayText,
-                note: apiObject.note ?? ""
+                note: apiObject.note ?? "",
+                title: apiObject.title
             )
         }
     }
