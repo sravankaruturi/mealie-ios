@@ -262,9 +262,40 @@ final class MealieAPIService {
         throw MealieAPIError.custom("Not implemented")
     }
     
+    func parseRecipeURL(url: URL) async throws -> String {
+        // POST /api/recipes/create/url
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized")
+        }
+        
+        let requestBody = Components.Schemas.ScrapeRecipe(url: url.absoluteString)
+        let input = Operations.parse_recipe_url_api_recipes_create_url_post.Input(body: .json(requestBody))
+        
+        let output = try await client.parse_recipe_url_api_recipes_create_url_post(input)
+        
+        switch output {
+        case .created(let response):
+            // The response body should contain the recipe slug as a string
+            return try response.body.json
+        case .unprocessableContent(let response):
+            throw MealieAPIError.custom("Validation Error: \(response)")
+        case .undocumented(let statusCode, _):
+            if statusCode == 401 {
+                throw MealieAPIError.unauthorized
+            } else {
+                throw MealieAPIError.networkError(NSError(domain: "HTTP error", code: statusCode))
+            }
+        }
+    }
+    
     func addRecipeFromURL(url: URL) async throws -> Recipe {
-        // POST /api/recipes/create-from-url
-        throw MealieAPIError.custom("Not implemented")
+        // First parse the URL to get the recipe slug
+        let recipeSlug = try await parseRecipeURL(url: url)
+        
+        // Then fetch the recipe details using the slug
+        let recipe = try await fetchRecipeDetails(slug: recipeSlug)
+        
+        return recipe
     }
     
     // MARK: - Meal Plan

@@ -29,10 +29,6 @@ struct MainTabBodyView : View {
                 .tabItem {
                     Label("Recipes", systemImage: "book")
                 }
-            AddRecipeView()
-                .tabItem {
-                    Label("Add", systemImage: "plus.circle")
-                }
             MealPlanView()
                 .tabItem {
                     Label("Calendar", systemImage: "calendar")

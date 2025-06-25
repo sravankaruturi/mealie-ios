@@ -17,9 +17,8 @@ struct ManualRecipeFormContentView: View {
     @Environment(\.dismiss) var dismiss
 
     init(modelContext: ModelContext) {
-        // NOTE: This assumes you have a MealieAPIService.
-        // You may need to adjust where the serverURL comes from.
-        let apiService = MealieAPIService(serverURL: URL(string: "http://localhost:9000")!)
+        // Use the shared API service instance
+        let apiService = MealieAPIService.shared
         // FIX: Correctly initialize the @State property within the initializer.
         _viewModel = State(initialValue: AddRecipeViewModel(apiService: apiService, modelContext: modelContext))
     }
