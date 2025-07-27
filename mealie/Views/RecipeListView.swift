@@ -12,6 +12,9 @@ struct RecipeListView: View {
     @State private var selectedRecipe: Recipe? // Recipe to navigate to after import
     @Environment(\.modelContext) private var modelContext
     
+    let gridItemWidth: CGFloat = 180
+    let gridItemHeight: CGFloat = 140
+    
     var filteredRecipes: [Recipe] {
         if searchText.isEmpty { return recipesViewModel.recipes }
         return recipesViewModel.recipes.filter { $0.name!.localizedCaseInsensitiveContains(searchText) }
@@ -20,23 +23,39 @@ struct RecipeListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                List(filteredRecipes) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
-                        RecipeCardView(recipe: recipe, mealieAPIService: mealieAPIService)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .listStyle(.plain)
-                .navigationTitle("Recipes")
-                .searchable(text: $searchText, prompt: "Search Recipes")
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: {
-                            Task {
-                                await recipesViewModel.forceSyncRecipes()
+                
+                ScrollView{
+                    Grid (horizontalSpacing: 10, verticalSpacing: 10){
+                        ForEach(Array(stride(from: 0, to: filteredRecipes.count, by: 2)), id: \.self) { index in
+                            GridRow{
+                                NavigationLink(destination: RecipeDetailView(recipe: filteredRecipes[index], mealieAPIService: self.mealieAPIService)) {
+                                    RecipeCardView(recipe: filteredRecipes[index], mealieAPIService: mealieAPIService)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .frame(width: gridItemWidth, height: gridItemHeight)
+                                
+                                if index + 1 < filteredRecipes.count {
+                                    NavigationLink(destination: RecipeDetailView(recipe: filteredRecipes[index + 1], mealieAPIService: self.mealieAPIService)) {
+                                        RecipeCardView(recipe: filteredRecipes[index + 1], mealieAPIService: mealieAPIService)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .frame(width: gridItemWidth, height: gridItemHeight)
+                                }
                             }
-                        }) {
-                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .navigationTitle("Recipes")
+                    .searchable(text: $searchText, prompt: "Search Recipes")
+                    .listStyle(PlainListStyle())
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button(action: {
+                                Task {
+                                    await recipesViewModel.forceSyncRecipes()
+                                }
+                            }) {
+                                Image(systemName: "arrow.clockwise")
+                            }
                         }
                     }
                 }
@@ -151,4 +170,23 @@ struct AddRecipeSheetView: View {
             }
         }
     }
+}
+
+
+#Preview {
+    
+    let mockService = MockMealieAPIService()
+    
+    let modelContainer = try! ModelContainer(for: Recipe.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    
+    // Insert sample recipe into the model context
+    modelContainer.mainContext.insert(MockMealieAPIService.sampleRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.favoriteRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.thirdRecipe)
+    
+    // Create the view model with the model context
+    let recipesViewModel = RecipesViewModel(modelContext: modelContainer.mainContext, mealieAPIService: mockService)
+    
+    return RecipeListView(mealieAPIService: mockService, recipesViewModel: recipesViewModel)
+        .modelContainer(modelContainer)
 }
