@@ -22,13 +22,37 @@ struct mealieApp: App {
         
         let modelConfiguration = ModelConfiguration(
             schema: schema, 
-            isStoredInMemoryOnly: false
+            isStoredInMemoryOnly: false,
+            allowsSave: true
         )
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // If migration fails, try to delete the app data and recreate
+            print("Failed to create ModelContainer: \(error)")
+            
+            // Try to delete the app's data directory to clear corrupted data
+            do {
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+                let libraryPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
+                
+                if let documentsPath = documentsPath {
+                    try? FileManager.default.removeItem(at: documentsPath)
+                    print("Deleted documents directory")
+                }
+                
+                if let libraryPath = libraryPath {
+                    try? FileManager.default.removeItem(at: libraryPath)
+                    print("Deleted library directory")
+                }
+                
+                // Try to create the container again
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                print("Failed to recreate ModelContainer: \(error)")
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
 

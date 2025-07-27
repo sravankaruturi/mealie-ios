@@ -1,8 +1,10 @@
 import SwiftUI
 
 struct RecipeDetailView: View {
+    
     let recipe: Recipe
     @State private var checkedIngredients: Set<Int> = []
+    @State private var showEditSheet = false
     
     var body: some View {
         ScrollView {
@@ -91,6 +93,16 @@ struct RecipeDetailView: View {
         }
         .navigationTitle(recipe.name ?? "Recipe")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit") {
+                    showEditSheet = true
+                }
+            }
+        }
+        .sheet(isPresented: $showEditSheet) {
+            EditRecipeView(recipe: recipe)
+        }
     }
 }
 

@@ -3,6 +3,7 @@ import SwiftData
 
 @Model
 final class Instruction {
+    var id: String?
     var step: Int
     var text: String
     var title: String? // Section title for grouping instructions
@@ -11,7 +12,8 @@ final class Instruction {
     @Relationship(inverse: \Recipe.instructions)
     var recipe: Recipe?
     
-    init(step: Int, text: String, title: String? = nil, recipe: Recipe? = nil) {
+    init(id: String? = nil, step: Int, text: String, title: String? = nil, recipe: Recipe? = nil) {
+        self.id = id ?? UUID().uuidString
         self.step = step
         self.text = text
         self.title = title
@@ -20,6 +22,7 @@ final class Instruction {
     
     // Default initializer for SwiftData
     init() {
+        self.id = UUID().uuidString
         self.step = 0
         self.text = ""
         self.title = nil
@@ -29,6 +32,7 @@ final class Instruction {
     // MARK: - Convenience Initializer for API Type
     convenience init(from apiObject: Components.Schemas.RecipeStep, step: Int) {
         self.init(
+            id: apiObject.id,
             step: step,
             text: apiObject.text,
             title: apiObject.title

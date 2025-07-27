@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct RecipeListView: View {
+    
     @State var recipesViewModel: RecipesViewModel
     @State private var searchText: String = ""
     @State private var showAddRecipeSheet = false

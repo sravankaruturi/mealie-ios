@@ -32,6 +32,9 @@ struct AuthenticationMiddleware : ClientMiddleware {
         
         if let accessToken = KeychainService.shared.getToken() {
             request.headerFields[values: .authorization] = .init(["Bearer \(accessToken)"])
+            print("🔐 AuthenticationMiddleware: Added Bearer token for operation: \(operationID)")
+        } else {
+            print("⚠️ AuthenticationMiddleware: No access token found for operation: \(operationID)")
         }
         
         return try await next(request, body, baseURL)

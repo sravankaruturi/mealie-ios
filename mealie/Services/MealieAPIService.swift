@@ -92,11 +92,18 @@ final class MealieAPIService {
                 }
             }
         } catch let error as URLError {
+            print("🌐 MealieAPIService: URLError occurred: \(error)")
+            print("🌐 MealieAPIService: URLError code: \(error.code)")
             if error.code == .appTransportSecurityRequiresSecureConnection || error.code == .serverCertificateUntrusted {
                 throw MealieAPIError.insecureConnection
             }
             throw MealieAPIError.networkError(error)
+        } catch let error as DecodingError {
+            print("🌐 MealieAPIService: DecodingError occurred: \(error)")
+            throw MealieAPIError.decodingError(error)
         } catch {
+            print("🌐 MealieAPIService: Unknown error occurred: \(error)")
+            print("🌐 MealieAPIService: Error type: \(type(of: error))")
             // Catches decoding errors or other issues.
             throw MealieAPIError.networkError(error)
         }
@@ -296,6 +303,79 @@ final class MealieAPIService {
         let recipe = try await fetchRecipeDetails(slug: recipeSlug)
         
         return recipe
+    }
+    
+    func updateRecipe(slug: String, recipeData: Components.Schemas.Recipe_hyphen_Input) async throws {
+        // PUT /api/recipes/{slug}
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized")
+        }
+        
+        print("🌐 MealieAPIService: Updating recipe with slug: \(slug)")
+        print("🌐 MealieAPIService: Recipe data ID: \(recipeData.id ?? "nil")")
+        print("🌐 MealieAPIService: Recipe data name: \(recipeData.name ?? "nil")")
+        print("🌐 MealieAPIService: Recipe data userId: \(recipeData.userId)")
+        print("🌐 MealieAPIService: Recipe data householdId: \(recipeData.householdId)")
+        print("🌐 MealieAPIService: Recipe data groupId: \(recipeData.groupId)")
+        print("🌐 MealieAPIService: Recipe data ingredients count: \(recipeData.recipeIngredient?.count)")
+        print("🌐 MealieAPIService: Recipe data instructions count: \(recipeData.recipeInstructions?.count)")
+        
+        // Log the request body for debugging
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let jsonData = try encoder.encode(recipeData)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("🌐 MealieAPIService: Request body:")
+                print(jsonString)
+            }
+        } catch {
+            print("🌐 MealieAPIService: Could not encode request body for logging: \(error)")
+        }
+        
+        let input = Operations.update_one_api_recipes__slug__put.Input(
+            path: .init(slug: slug),
+            body: .json(recipeData)
+        )
+        
+        print("🌐 MealieAPIService: Making API request...")
+        
+        let output = try await client.update_one_api_recipes__slug__put(input)
+        
+        print("🌐 MealieAPIService: Received response")
+        
+        switch output {
+        case .ok:
+            print("🌐 MealieAPIService: Recipe updated successfully")
+            // Successfully updated
+            break
+        case .unprocessableContent(let response):
+            print("🌐 MealieAPIService: Validation error: \(response)")
+            throw MealieAPIError.custom("Validation Error: \(response)")
+        case .undocumented(let statusCode, let response):
+            print("🌐 MealieAPIService: Undocumented status code: \(statusCode)")
+            print("🌐 MealieAPIService: Response: \(response)")
+            
+            // Try to extract error message from response body
+            if let responseBody = response.body {
+                do {
+                    let data = try await responseBody.reduce(into: Data()) { $0.append(contentsOf: $1) }
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("🌐 MealieAPIService: Response body: \(jsonString)")
+                    }
+                } catch {
+                    print("🌐 MealieAPIService: Could not read response body: \(error)")
+                }
+            }
+            
+            if statusCode == 401 {
+                throw MealieAPIError.unauthorized
+            } else if statusCode == 500 {
+                throw MealieAPIError.custom("Server error (500): Internal server error occurred")
+            } else {
+                throw MealieAPIError.networkError(NSError(domain: "HTTP error", code: statusCode))
+            }
+        }
     }
     
     // MARK: - Meal Plan

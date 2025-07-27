@@ -36,12 +36,21 @@ struct ManualRecipeFormContentView: View {
                 Section(header: Text("Ingredients")) {
                     // Use a ForEach loop that binds to the viewModel's ingredients array.
                     ForEach($viewModel.ingredients) { $ingredient in
-                        TextField("2 cups flour", text: $ingredient.originalText)
+                        HStack {
+                            TextField("2", value: $ingredient.quantity, formatter: NumberFormatter())
+                                .frame(width: 40)
+                            Picker("Unit", selection: $ingredient.unit) {
+                                Text(ingredient.unit.name).tag(ingredient.unit)
+                                // You may want to provide a list of units here
+                            }
+                            .frame(width: 80)
+                            TextField("flour", text: $ingredient.name)
+                        }
                     }
                     .onDelete { viewModel.ingredients.remove(atOffsets: $0) }
                     
                     Button("Add Ingredient") {
-                        viewModel.ingredients.append(Ingredient(orderIndex: viewModel.ingredients.count, name: "", quantity: 0, unit: "", originalText: "", note: ""))
+                        viewModel.ingredients.append(Ingredient(orderIndex: viewModel.ingredients.count, name: "", quantity: 0, unit: IngredientUnit(name: ""), originalText: "", note: ""))
                     }
                 }
                 Section(header: Text("Instructions")) {
