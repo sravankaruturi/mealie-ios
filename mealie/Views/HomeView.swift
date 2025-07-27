@@ -32,7 +32,7 @@ struct HomeView: View {
                                         RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .frame(maxWidth: 160)
+                                    .frame(width: 180, height: 140)
                                 }
                             }
                             .padding(.horizontal)
@@ -48,7 +48,7 @@ struct HomeView: View {
                                         RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .frame(maxWidth: 160)
+                                    .frame(width: 180, height: 140)
                                 }
                             }
                             .padding(.horizontal)
@@ -57,12 +57,25 @@ struct HomeView: View {
 
                     if !recentlyAdded.isEmpty {
                         SectionHeader(title: "Recently Added")
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 16) {
-                            ForEach(recentlyAdded) { recipe in
-                                NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
-                                    RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
+                        
+                        Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+                            ForEach(Array(stride(from: 0, to: recentlyAdded.count, by: 2)), id: \.self) { index in
+                                GridRow{
+                                    NavigationLink(destination: RecipeDetailView(recipe: recentlyAdded[index], mealieAPIService: self.mealieAPIService)) {
+                                        RecipeCardView(recipe: recentlyAdded[index], mealieAPIService: self.mealieAPIService)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .frame(width: 180, height: 140)
+                                    
+                                    if index + 1 < recentlyAdded.count {
+                                        NavigationLink(destination: RecipeDetailView(recipe: recentlyAdded[index + 1], mealieAPIService: self.mealieAPIService)) {
+                                            RecipeCardView(recipe: recentlyAdded[index + 1], mealieAPIService: self.mealieAPIService)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        .frame(width: 180, height: 140)
+                                    }
+                                    
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.horizontal)
