@@ -3,6 +3,9 @@ import SwiftUI
 struct RecipeDetailView: View {
     
     let recipe: Recipe
+    
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     @State private var checkedIngredients: Set<Int> = []
     @State private var showEditSheet = false
     
@@ -101,7 +104,7 @@ struct RecipeDetailView: View {
             }
         }
         .sheet(isPresented: $showEditSheet) {
-            EditRecipeView(recipe: recipe)
+            EditRecipeView(mealieAPIService: self.mealieAPIService, recipe: recipe)
         }
     }
 }

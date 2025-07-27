@@ -9,7 +9,7 @@ final class AddRecipeViewModel {
     var showSuccess: Bool = false
     var newRecipeSlug: String? // For navigation to the new recipe
     
-    let apiService: MealieAPIService
+    let apiService: MealieAPIServiceProtocol
     let modelContext: ModelContext
     let recipesViewModel: RecipesViewModel? // Optional for manual recipes
     
@@ -22,7 +22,7 @@ final class AddRecipeViewModel {
     var ingredients: [Ingredient] = []
     var instructions: [Instruction] = []
     
-    init(apiService: MealieAPIService, modelContext: ModelContext, recipesViewModel: RecipesViewModel? = nil) {
+    init(apiService: MealieAPIServiceProtocol, modelContext: ModelContext, recipesViewModel: RecipesViewModel? = nil) {
         self.apiService = apiService
         self.modelContext = modelContext
         self.recipesViewModel = recipesViewModel

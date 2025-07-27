@@ -8,12 +8,13 @@ final class RecipesViewModel {
     var isSyncing: Bool = false
     var error: String?
     let modelContext: ModelContext
-    let apiService: MealieAPIService = .shared 
+    let apiService: MealieAPIServiceProtocol
     var recipes: [Recipe]
     var lastSyncTime: Date?
     
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext
+        self.apiService = mealieAPIService
         self.recipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
         AppLogger.logRecipes(self.recipes, context: "RecipesViewModel Initialized")
     }

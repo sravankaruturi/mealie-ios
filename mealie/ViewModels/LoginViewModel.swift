@@ -5,6 +5,7 @@ import SwiftUI
 final class LoginViewModel {
     
     var authState: AuthenticationState
+    var mealieAPIService: MealieAPIServiceProtocol
     
     var serverURL: String = ""
     var username: String = ""
@@ -14,8 +15,9 @@ final class LoginViewModel {
     // NOTE: You'll need to implement the MealieAPIService and KeychainService
     // for this ViewModel to be fully functional.
     
-    init(authState: AuthenticationState) {
+    init(authState: AuthenticationState, mealieAPIService: MealieAPIServiceProtocol) {
         self.authState = authState
+        self.mealieAPIService = mealieAPIService
     }
     
     func authenticate() async {
@@ -34,11 +36,10 @@ final class LoginViewModel {
             return
         }
         
-        let api = MealieAPIService.shared
-        api.setURL(url)
+        mealieAPIService.setURL(url)
         
         do {
-            let token = try await api.login(username: username, password: password)
+            let token = try await mealieAPIService.login(username: username, password: password)
             authState.login(token: token, serverURL: url)
             ToastManager.shared.showSuccess("Login successful!")
         } catch {

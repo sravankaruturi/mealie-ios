@@ -5,15 +5,20 @@ struct MainTabView: View {
     
     @Environment(\.modelContext) var modelContext
     
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     var body: some View {
-        MainTabBodyView(modelContext: modelContext)
+        MainTabBodyView(modelContext: modelContext, mealieAPIService: mealieAPIService)
     }
 } 
 
 struct MainTabBodyView : View {
     
-    init(modelContext: ModelContext) {
-        self.recipesViewModel = .init(modelContext: modelContext)
+    var mealieAPIService: MealieAPIServiceProtocol
+    
+    init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
+        self.mealieAPIService = mealieAPIService
+        self.recipesViewModel = .init(modelContext: modelContext, mealieAPIService: mealieAPIService)
     }
     
     @State var recipesViewModel: RecipesViewModel
@@ -21,11 +26,11 @@ struct MainTabBodyView : View {
     var body: some View {
         
         TabView {
-            HomeView()
+            HomeView(mealieAPIService: self.mealieAPIService)
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
-            RecipeListView(recipesViewModel: recipesViewModel)
+            RecipeListView(mealieAPIService: self.mealieAPIService, recipesViewModel: recipesViewModel)
                 .tabItem {
                     Label("Recipes", systemImage: "book")
                 }
@@ -33,7 +38,7 @@ struct MainTabBodyView : View {
                 .tabItem {
                     Label("Calendar", systemImage: "calendar")
                 }
-            ProfileView(recipesViewModel: recipesViewModel)
+            ProfileView(recipesViewModel: recipesViewModel, mealieAPIService: self.mealieAPIService)
                 .tabItem {
                     Label("Profile", systemImage: "person")
                 }

@@ -4,10 +4,12 @@ import SwiftData
 struct ManualRecipeFormView: View {
     // 1. Get the modelContext from the environment.
     @Environment(\.modelContext) private var modelContext
+    
+    var mealieAPIService: MealieAPIServiceProtocol
 
     var body: some View {
         // 2. Pass the context to the content view.
-        ManualRecipeFormContentView(modelContext: modelContext)
+        ManualRecipeFormContentView(modelContext: modelContext, mealieAPIService: mealieAPIService)
     }
 }
 
@@ -15,12 +17,12 @@ struct ManualRecipeFormContentView: View {
     // FIX: Use @State to create and own the @Observable view model.
     @State private var viewModel: AddRecipeViewModel
     @Environment(\.dismiss) var dismiss
+    
+//    var mealieAPIService: MealieAPIServiceProtocol
 
-    init(modelContext: ModelContext) {
-        // Use the shared API service instance
-        let apiService = MealieAPIService.shared
+    init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         // FIX: Correctly initialize the @State property within the initializer.
-        _viewModel = State(initialValue: AddRecipeViewModel(apiService: apiService, modelContext: modelContext))
+        _viewModel = State(initialValue: AddRecipeViewModel(apiService: mealieAPIService, modelContext: modelContext))
     }
     
     var body: some View {

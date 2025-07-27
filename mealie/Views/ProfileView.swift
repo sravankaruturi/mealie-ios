@@ -4,6 +4,8 @@ struct ProfileView: View {
     @Environment(AuthenticationState.self) private var authState
     let recipesViewModel: RecipesViewModel
     
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     @State private var currentUser: Components.Schemas.UserOut?
     @State private var isLoadingUser = false
     @State private var userError: String?
@@ -187,7 +189,7 @@ struct ProfileView: View {
         userError = nil
         
         do {
-            currentUser = try await MealieAPIService.shared.getCurrentUser()
+            currentUser = try await self.mealieAPIService.getCurrentUser()
         } catch {
             userError = error.localizedDescription
             print("Failed to load user info: \(error)")

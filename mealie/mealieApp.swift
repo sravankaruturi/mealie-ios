@@ -10,7 +10,8 @@ import SwiftData
 
 @main
 struct mealieApp: App {
-    var sharedModelContainer: ModelContainer = {
+    
+    private var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
             Recipe.self,
@@ -55,10 +56,18 @@ struct mealieApp: App {
             }
         }
     }()
+    
+    private var mealieAPIService = MealieAPIService(serverURL: nil)
+    private var authState: AuthenticationState
+    
+    init() {
+        self.authState = AuthenticationState(mealieAPIService: mealieAPIService)
+    }
 
     var body: some Scene {
+        
         WindowGroup {
-            ContentView()
+            ContentView(mealieAPIService: self.mealieAPIService, authState: authState)
         }
         .modelContainer(sharedModelContainer)
     }

@@ -11,16 +11,21 @@ import Observation
 final class AuthenticationState {
     
     var isLoggedIn: Bool = false
+    
     private let keychainService: KeychainService
+    private let mealieAPIService: MealieAPIServiceProtocol
 
-    init(keychainService: KeychainService = .shared) {
+    init(keychainService: KeychainService = .shared, mealieAPIService: MealieAPIServiceProtocol) {
+        
         self.keychainService = keychainService
+        self.mealieAPIService = mealieAPIService
+        
         if keychainService.getToken() != nil {
             print("Token Exists: Logging in...")
             self.isLoggedIn = true
             // Set up the API service with the stored server URL
             if let serverURL = keychainService.getServerURL() {
-                MealieAPIService.shared.setURL(serverURL)
+                mealieAPIService.setURL(serverURL)
                 print("Set the server URL to: \(serverURL)")
             } else {
                 print( "Server URL not found in keychain. Logging Out")
@@ -33,7 +38,7 @@ final class AuthenticationState {
 
     func login(token: String, serverURL: URL) {
         keychainService.saveToken(token, serverURL: serverURL)
-        MealieAPIService.shared.setURL(serverURL)
+        mealieAPIService.setURL(serverURL)
         isLoggedIn = true
     }
 

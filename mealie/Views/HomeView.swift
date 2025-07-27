@@ -2,9 +2,12 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
+    
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Recipe.name) private var recipes: [Recipe]
     @State private var hasSyncedFavorites = false
+    
+    var mealieAPIService: MealieAPIServiceProtocol
     
     var favorites: [Recipe] { recipes.filter { $0.isFavorite } }
     
@@ -25,8 +28,8 @@ struct HomeView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(favorites) { recipe in
-                                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                                        RecipeCardView(recipe: recipe)
+                                    NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
+                                        RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     .frame(maxWidth: 160)
@@ -41,8 +44,8 @@ struct HomeView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(recentlyViewed) { recipe in
-                                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                                        RecipeCardView(recipe: recipe)
+                                    NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
+                                        RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     .frame(maxWidth: 160)
@@ -56,8 +59,8 @@ struct HomeView: View {
                         SectionHeader(title: "Recently Added")
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 16) {
                             ForEach(recentlyAdded) { recipe in
-                                NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                                    RecipeCardView(recipe: recipe)
+                                NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
+                                    RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }
@@ -104,7 +107,7 @@ struct HomeView: View {
     private func syncFavoritesFromServer() async {
         print("🔄 Starting favorites sync for \(recipes.count) recipes")
         do {
-            try await MealieAPIService.shared.syncFavoritesFromServer(recipes: recipes)
+            try await self.mealieAPIService.syncFavoritesFromServer(recipes: recipes)
             // Save the context to persist the favorite status changes and update the UI
             try? modelContext.save()
             hasSyncedFavorites = true

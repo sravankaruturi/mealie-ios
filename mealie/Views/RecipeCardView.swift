@@ -2,28 +2,37 @@ import SwiftUI
 import Kingfisher
 
 struct RecipeCardView: View {
+    
     let recipe: Recipe
     @Environment(\.modelContext) private var modelContext
     @State private var isTogglingFavorite = false
+    
+    var mealieAPIService: MealieAPIServiceProtocol
 
     var body: some View {
-        VStack(spacing: 16) {
+        
+        ZStack {
             // Recipe image using Kingfisher
             RecipeImageView(
+                mealieAPIService: self.mealieAPIService,
                 recipeId: recipe.apiId,
                 imageType: .minOriginal, // Use medium size for cards
                 placeholder: Image(systemName: "photo"),
                 contentMode: .fill,
                 cornerRadius: 8
             )
-            .frame(width: 80, height: 80)
+            .frame(width: 180, height: 140)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .clipped()
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(recipe.name ?? "Untitled Recipe")
                         .font(.headline)
+                        .foregroundStyle(.white)
+                        .fontWeight(.bold)
                         .lineLimit(2)
+                        .shadow(radius: 4)
                     
                     Spacer()
                     
@@ -35,15 +44,15 @@ struct RecipeCardView: View {
                         Image(systemName: recipe.isFavorite ? "heart.fill" : "heart")
                             .foregroundColor(recipe.isFavorite ? .red : .gray)
                             .opacity(isTogglingFavorite ? 0.5 : 1.0)
+                            .fontWeight(.bold)
+                            .lineLimit(2)
+                            .shadow(radius: 4)
+                        
                     }
                     .buttonStyle(PlainButtonStyle())
                     .disabled(isTogglingFavorite)
                 }
-                
-                Text(recipe.recipeDescription)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
+                .padding(.all, 8)
 
                 Spacer()
                 
@@ -55,10 +64,14 @@ struct RecipeCardView: View {
                     Label("\(recipe.recipeServings)", systemImage: "person.2")
                 }
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .fontWeight(.bold)
+                .padding(.all, 8)
+//                .padding(.all, 4)
+                .background(Color.white.opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .clipped()
             }
         }
-        .padding(.vertical, 8)
     }
     
     private func toggleFavorite() async {
@@ -87,10 +100,10 @@ struct RecipeCardView: View {
         do {
             if !recipe.isFavorite { // Note: we already toggled, so check the new state
                 // Remove from favorites
-                try await MealieAPIService.shared.removeFromFavorites(recipeSlug: slug)
+                try await self.mealieAPIService.removeFromFavorites(recipeSlug: slug)
             } else {
                 // Add to favorites
-                try await MealieAPIService.shared.addToFavorites(recipeSlug: slug)
+                try await self.mealieAPIService.addToFavorites(recipeSlug: slug)
             }
             
             // Server sync successful, no need to revert
@@ -174,7 +187,7 @@ struct RecipeCardView: View {
         houseHoldId: "household-123",
         name: "Grilled Chicken Salad",
         slug: "grilled-chicken-salad",
-        image: "salad-image-url",
+        image: "https://demo.mealie.io/api/media/recipes/7e099149-4f76-449d-86c6-1e5d65e4e543/images/original.webp",
         recipeDescription: "Fresh mixed greens with grilled chicken breast, cherry tomatoes, cucumber, and a light vinaigrette dressing.",
         recipeServings: 2,
         recipeYieldQuantity: 2,
@@ -194,11 +207,13 @@ struct RecipeCardView: View {
         isFavorite: false
     )
     
-    return HStack(spacing: 16) {
-        RecipeCardView(recipe: sampleRecipe)
-        RecipeCardView(recipe: thirdRecipe)
+    let mockService = MockMealieAPIService()
+    
+    HStack(spacing: 16) {
+        RecipeCardView(recipe: sampleRecipe, mealieAPIService: mockService)
+        RecipeCardView(recipe: thirdRecipe, mealieAPIService: mockService)
     }
     .padding(.horizontal)
     .modelContainer(for: Recipe.self, inMemory: true)
-    .frame(width: .infinity, height: 500)
+    .frame(width: .infinity, height: 120)
 }

@@ -5,19 +5,24 @@ import Kingfisher
 import SwiftUI
 
 struct RecipeImageView: View {
+    
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     let recipeId: String
-    let imageType: MealieAPIService.ImageType
+    let imageType: ImageType
     let placeholder: Image?
     let contentMode: SwiftUI.ContentMode
     let cornerRadius: CGFloat
     
     init(
+        mealieAPIService: MealieAPIServiceProtocol,
         recipeId: String,
-        imageType: MealieAPIService.ImageType = .original,
+        imageType: ImageType = .original,
         placeholder: Image? = nil,
         contentMode: SwiftUI.ContentMode = .fill,
         cornerRadius: CGFloat = 0
     ) {
+        self.mealieAPIService = mealieAPIService
         self.recipeId = recipeId
         self.imageType = imageType
         self.placeholder = placeholder
@@ -26,7 +31,8 @@ struct RecipeImageView: View {
     }
     
     var body: some View {
-        let url = MealieAPIService.shared.getRecipeImageURLForKingfisher(
+        
+        let url = self.mealieAPIService.getRecipeImageURLForKingfisher(
             recipeId: recipeId,
             imageType: imageType
         )
@@ -46,3 +52,10 @@ struct RecipeImageView: View {
             .cornerRadius(cornerRadius)
     }
 } 
+
+#Preview {
+    
+    let mockAPI = MockMealieAPIService()
+    
+    RecipeImageView(mealieAPIService: mockAPI, recipeId: "TestImage")
+}

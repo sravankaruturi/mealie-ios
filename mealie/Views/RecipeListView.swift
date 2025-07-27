@@ -3,6 +3,8 @@ import SwiftData
 
 struct RecipeListView: View {
     
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     @State var recipesViewModel: RecipesViewModel
     @State private var searchText: String = ""
     @State private var showAddRecipeSheet = false
@@ -19,8 +21,8 @@ struct RecipeListView: View {
         NavigationStack {
             ZStack {
                 List(filteredRecipes) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                        RecipeCardView(recipe: recipe)
+                    NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
+                        RecipeCardView(recipe: recipe, mealieAPIService: mealieAPIService)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -62,7 +64,7 @@ struct RecipeListView: View {
                 }
             }
             .navigationDestination(item: $selectedRecipe) { recipe in
-                RecipeDetailView(recipe: recipe)
+                RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)
             }
         }
         .sheet(isPresented: $showAddRecipeSheet) {
@@ -73,6 +75,7 @@ struct RecipeListView: View {
         }
         .sheet(isPresented: $showURLImportSheet) {
             ImportRecipeFromURLView(
+                mealieAPIService: self.mealieAPIService,
                 onRecipeImported: { recipeSlug in
                     // Handle successful recipe import
                     showURLImportSheet = false
@@ -90,7 +93,7 @@ struct RecipeListView: View {
             // Fallback: Recipe not found in current list, try to fetch it
             Task {
                 do {
-                    let apiService = MealieAPIService.shared
+                    let apiService = self.mealieAPIService
                     let fetchedRecipe = try await apiService.fetchRecipeDetails(slug: recipeSlug)
                     
                     await MainActor.run {

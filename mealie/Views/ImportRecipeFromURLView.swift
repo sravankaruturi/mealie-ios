@@ -2,8 +2,12 @@ import SwiftUI
 import SwiftData
 
 struct ImportRecipeFromURLView: View {
+    
     // We need to fetch the modelContext from the environment here.
     @Environment(\.modelContext) private var modelContext
+    
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     let onRecipeImported: ((String) -> Void)? // Callback for successful import
     let recipesViewModel: RecipesViewModel // Pass the existing view model
 
@@ -11,7 +15,8 @@ struct ImportRecipeFromURLView: View {
         // Then, we pass the context to the actual view content.
         // This ensures the viewModel is initialized correctly with the context.
         ImportRecipeFromURLContentView(
-            modelContext: modelContext, 
+            modelContext: modelContext,
+            mealieAPIService: mealieAPIService,
             recipesViewModel: recipesViewModel,
             onRecipeImported: onRecipeImported
         )
@@ -19,20 +24,25 @@ struct ImportRecipeFromURLView: View {
 }
 
 struct ImportRecipeFromURLContentView: View {
+    
+    @Environment(\.dismiss) var dismiss
+    
     // FIX: Use @State to create and own the @Observable object.
     @State private var viewModel: AddRecipeViewModel
-    @Environment(\.dismiss) var dismiss
     @State private var urlString: String = ""
+    
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     let onRecipeImported: ((String) -> Void)? // Callback for successful import
     let recipesViewModel: RecipesViewModel
 
-    init(modelContext: ModelContext, recipesViewModel: RecipesViewModel, onRecipeImported: ((String) -> Void)? = nil) {
+    init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol, recipesViewModel: RecipesViewModel, onRecipeImported: ((String) -> Void)? = nil) {
         // Initialize the State property with the modelContext passed from the parent.
         // Use the shared API service instance
-        let apiService = MealieAPIService.shared
+        self.mealieAPIService = mealieAPIService
         // FIX: Correctly initialize the @State property within the initializer.
         _viewModel = State(initialValue: AddRecipeViewModel(
-            apiService: apiService, 
+            apiService: mealieAPIService, 
             modelContext: modelContext,
             recipesViewModel: recipesViewModel
         ))

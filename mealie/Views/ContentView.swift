@@ -3,16 +3,19 @@ import SwiftData
 
 struct ContentView: View {
     
-    @State private var authState = AuthenticationState()
+    
     @State private var showPasteboardBanner = false
     @State private var pasteboardURL: URL?
+    
+    var mealieAPIService: MealieAPIServiceProtocol
+    var authState: AuthenticationState
     
     var body: some View {
         ZStack(alignment: .bottom) {
             if authState.isLoggedIn {
-                MainTabView()
+                MainTabView(mealieAPIService: mealieAPIService)
             } else {
-                LoginView()
+                LoginView(mealieAPIService: mealieAPIService)
             }
             
             VStack(spacing: 0) {
@@ -41,5 +44,6 @@ struct ContentView: View {
         }
         .environment(authState)
         .environment(ToastManager.shared)
+
     }
 } 

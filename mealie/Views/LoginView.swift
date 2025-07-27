@@ -4,9 +4,11 @@ struct LoginView : View {
     
     @Environment(AuthenticationState.self) var authState
     
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     var body: some View {
        
-        LoginBodyView(viewModel: .init(authState: authState))
+        LoginBodyView(viewModel: .init(authState: authState, mealieAPIService: mealieAPIService))
         
     }
     

@@ -5,7 +5,7 @@ import SwiftData
 @Observable
 class EditRecipeViewModel {
     
-    private let apiService: MealieAPIService = .shared
+    private let apiService: MealieAPIServiceProtocol
     private let recipe: Recipe
     var modelContext: ModelContext
     
@@ -25,7 +25,7 @@ class EditRecipeViewModel {
     var instructions: [Instruction]
 //    var photoImage: UIImage
     
-    init(modelContext: ModelContext, recipe: Recipe) {
+    init(modelContext: ModelContext, recipe: Recipe, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext
         self.recipe = recipe
         
@@ -39,8 +39,7 @@ class EditRecipeViewModel {
         self.yield = recipe.recipeYield ?? ""
         self.ingredients = recipe.ingredients.sorted(by: { $0.orderIndex < $1.orderIndex })
         self.instructions = recipe.instructions
-        
-//        self.photoImage =
+        self.apiService = mealieAPIService
     }
     
     func saveRecipe() async {

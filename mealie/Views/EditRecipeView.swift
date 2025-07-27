@@ -11,9 +11,9 @@ struct EditRecipeBodyView : View {
     @State private var nutrition: String = ""
     @State private var editingIngredientIndex: Int? = nil
     
-    init(recipe: Recipe, modelContext: ModelContext) {
+    init(recipe: Recipe, modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext
-        self.viewModel = EditRecipeViewModel(modelContext: modelContext, recipe: recipe)
+        self.viewModel = EditRecipeViewModel(modelContext: modelContext, recipe: recipe, mealieAPIService: mealieAPIService)
     }
     
     var body: some View {
@@ -297,10 +297,12 @@ struct EditRecipeView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
     
+    var mealieAPIService: MealieAPIServiceProtocol
+    
     let recipe: Recipe
     
     var body: some View {
-        EditRecipeBodyView(recipe: recipe, modelContext: modelContext)
+        EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService)
     }
     
 }
@@ -520,5 +522,7 @@ extension View {
         ]
     )
     
-    EditRecipeView(recipe: sampleRecipe)
+    let mockAPI = MockMealieAPIService()
+    
+    EditRecipeView(mealieAPIService: mockAPI, recipe: sampleRecipe)
 }

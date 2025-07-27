@@ -2,29 +2,7 @@ import Foundation
 import OpenAPIRuntime
 import OpenAPIURLSession
 
-enum MealieAPIError: Error, LocalizedError {
-    case invalidURL
-    case networkError(Error)
-    case decodingError(Error)
-    case unauthorized
-    case insecureConnection
-    case custom(String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .invalidURL: return "Invalid server URL."
-        case .networkError(let err): return err.localizedDescription
-        case .decodingError(let err): return "Failed to decode response: \(err.localizedDescription)"
-        case .unauthorized: return "Unauthorized. Please check your credentials."
-        case .insecureConnection: return "Insecure connection. Allow HTTP or self-signed certificate?"
-        case .custom(let msg): return msg
-        }
-    }
-}
-
-final class MealieAPIService {
-    
-    public static let shared = MealieAPIService(serverURL: nil)
+final class MealieAPIService: MealieAPIServiceProtocol {
     
     private(set) var serverURL: URL?
     private var session: URLSession
@@ -553,11 +531,7 @@ final class MealieAPIService {
         print("✅ Synced Favourites: \(updatedCount) recipes updated")
     }
     
-    enum ImageType: String, CaseIterable {
-        case original = "original.webp"
-        case minOriginal = "min-original.webp"
-        case tinyOriginal = "tiny-original.webp"
-    }
+
     
     // MARK: - Delete
     func deleteRecipe(slug: String) async throws {
