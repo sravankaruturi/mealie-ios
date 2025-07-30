@@ -18,6 +18,9 @@ struct AddRecipeOptionsView: View {
             
             Group{
                 HStack {
+                    
+                    Spacer()
+                    
                     Text("URL")
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -41,6 +44,9 @@ struct AddRecipeOptionsView: View {
             
             Group{
                 HStack {
+                    
+                    Spacer()
+                    
                     Text("Manual")
                         .font(.caption)
                         .fontWeight(.semibold)
