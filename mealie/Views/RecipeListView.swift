@@ -7,9 +7,10 @@ struct RecipeListView: View {
     
     @State var recipesViewModel: RecipesViewModel
     @State private var searchText: String = ""
-    @State private var showAddRecipeSheet = false
+    @State private var showAddRecipeOptions = false
     @State private var showURLImportSheet = false
     @State private var selectedRecipe: Recipe? // Recipe to navigate to after import
+    
     @Environment(\.modelContext) private var modelContext
     
     let gridItemWidth: CGFloat = 180
@@ -60,20 +61,47 @@ struct RecipeListView: View {
                     }
                 }
                 
+                if showAddRecipeOptions {
+                    LinearGradient(stops: [.init(color: .white.opacity(1.0), location: 0), .init(color: .white.opacity(0.5), location: 1)], startPoint: .bottomTrailing, endPoint: .topLeading)
+                        .ignoresSafeArea(.all)
+                        .onTapGesture {
+                            withAnimation(.easeOut) {
+                                showAddRecipeOptions.toggle()
+                            }
+                        }
+                }
+                
                 // Floating Action Button
-                VStack {
+                VStack( alignment: .trailing) {
                     Spacer()
+                    
+                    if showAddRecipeOptions {
+                        AddRecipeOptionsView(
+                            onURLImport: {
+                                withAnimation(.interpolatingSpring) {
+                                    showAddRecipeOptions.toggle()
+                                    showURLImportSheet.toggle()
+                                }
+                            }, onManualImport: {
+                                
+                            }
+                        )
+                        .padding(.bottom, 10)
+                    }
+                    
                     HStack {
                         Spacer()
                         Button(action: {
-                            showAddRecipeSheet = true
+                            withAnimation(.interpolatingSpring) {
+                                showAddRecipeOptions.toggle()
+                            }
                         }) {
-                            Image(systemName: "plus")
+                            Image(systemName: showAddRecipeOptions ? "xmark" : "plus")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)
                                 .frame(width: 56, height: 56)
-                                .background(Color.blue)
+                                .background(Color.orange)
                                 .clipShape(Circle())
                                 .shadow(radius: 4)
                         }
@@ -86,12 +114,6 @@ struct RecipeListView: View {
                 RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)
             }
         }
-        .sheet(isPresented: $showAddRecipeSheet) {
-            AddRecipeSheetView(onURLImport: {
-                showAddRecipeSheet = false
-                showURLImportSheet = true
-            })
-        }
         .sheet(isPresented: $showURLImportSheet) {
             ImportRecipeFromURLView(
                 mealieAPIService: self.mealieAPIService,
@@ -101,6 +123,7 @@ struct RecipeListView: View {
                     navigateToRecipeBySlug(recipeSlug)
                 }, recipesViewModel: recipesViewModel
             )
+            .presentationDetents([.medium, .fraction(0.3)])
         }
     }
     
@@ -130,49 +153,6 @@ struct RecipeListView: View {
     }
 }
 
-// Sheet view for adding recipes
-struct AddRecipeSheetView: View {
-    @Environment(\.dismiss) var dismiss
-    @Environment(\.modelContext) private var modelContext
-    let onURLImport: () -> Void
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 32) {
-                Spacer()
-                Button(action: { 
-                    // TODO: Implement manual recipe form
-                    dismiss()
-                }) {
-                    Text("Manual")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                
-                Button(action: { 
-                    onURLImport()
-                }) {
-                    Text("From URL")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("Add Recipe")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-}
-
-
 #Preview {
     
     let mockService = MockMealieAPIService()
@@ -183,6 +163,11 @@ struct AddRecipeSheetView: View {
     modelContainer.mainContext.insert(MockMealieAPIService.sampleRecipe)
     modelContainer.mainContext.insert(MockMealieAPIService.favoriteRecipe)
     modelContainer.mainContext.insert(MockMealieAPIService.thirdRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.fourthRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.fifthRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.sixthRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.seventhRecipe)
+    modelContainer.mainContext.insert(MockMealieAPIService.eightRecipe)
     
     // Create the view model with the model context
     let recipesViewModel = RecipesViewModel(modelContext: modelContainer.mainContext, mealieAPIService: mockService)
