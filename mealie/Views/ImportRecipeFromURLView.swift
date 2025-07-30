@@ -57,39 +57,45 @@ struct ImportRecipeFromURLContentView: View {
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.URL)
                     .autocapitalization(.none)
-                Button(action: {
-                    if let url = URL(string: urlString) {
-                        Task {
-                            await viewModel.addRecipeFromURL(url)
-                            
-                            // Check if import was successful
-                            if viewModel.showSuccess, let recipeSlug = viewModel.newRecipeSlug {
-                                await MainActor.run {
-                                    // Call the callback with the recipe slug
-                                    onRecipeImported?(recipeSlug)
-                                    dismiss()
-                                }
-                            }
-                        }
-                    }
-                }) {
-                    if viewModel.isLoading {
-                        ProgressView()
-                    } else {
-                        Text("Import")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(viewModel.isLoading || urlString.isEmpty)
+                
                 if let error = viewModel.error {
                     Text(error)
                         .foregroundColor(.red)
                 }
-                Button("Cancel") { dismiss() }
-                    .buttonStyle(.bordered)
+                
+                HStack{
+                    Button(action: {
+                        if let url = URL(string: urlString) {
+                            Task {
+                                await viewModel.addRecipeFromURL(url)
+                                
+                                // Check if import was successful
+                                if viewModel.showSuccess, let recipeSlug = viewModel.newRecipeSlug {
+                                    await MainActor.run {
+                                        // Call the callback with the recipe slug
+                                        onRecipeImported?(recipeSlug)
+                                        dismiss()
+                                    }
+                                }
+                            }
+                        }
+                    }) {
+                        if viewModel.isLoading {
+                            ProgressView()
+                        } else {
+                            Text("Import")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(viewModel.isLoading || urlString.isEmpty)
+                    
+                    Button("Cancel") { dismiss() }
+                        .buttonStyle(.bordered)
+                }
             }
             .padding()
             .navigationTitle("Import from URL")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
