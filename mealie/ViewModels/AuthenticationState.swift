@@ -9,42 +9,94 @@ import Observation
 
 @Observable
 final class AuthenticationState {
+
+    enum AuthStatus {
+        case unknown
+        case authenticated(User)
+        case unauthenticated
+        case loading
+    }
     
-    var isLoggedIn: Bool = false
+    
     
     private let keychainService: KeychainService
-    private let mealieAPIService: MealieAPIServiceProtocol
+    private let authService: AuthenticationServiceProtocol
+    
+    var status: AuthStatus = .unknown
+    var isLoading: Bool = false
 
-    init(keychainService: KeychainService = .shared, mealieAPIService: MealieAPIServiceProtocol) {
-        
-        self.keychainService = keychainService
-        self.mealieAPIService = mealieAPIService
-        
-        if keychainService.getToken() != nil {
-            print("Token Exists: Logging in...")
-            self.isLoggedIn = true
-            // Set up the API service with the stored server URL
-            if let serverURL = keychainService.getServerURL() {
-                mealieAPIService.setURL(serverURL)
-                print("Set the server URL to: \(serverURL)")
-            } else {
-                print( "Server URL not found in keychain. Logging Out")
-                keychainService.deleteToken()
-                isLoggedIn = false
-                ToastManager.shared.showError("Server URL not found. Please log in again.")
-            }
+    var isLoggedIn: Bool {
+        switch status {
+            case .authenticated:
+            return true
+        default:
+            return false
         }
     }
 
-    func login(token: String, serverURL: URL) {
-        keychainService.saveToken(token, serverURL: serverURL)
-        mealieAPIService.setURL(serverURL)
-        isLoggedIn = true
+    var user: User? {
+        switch status {
+        case .authenticated(let user):
+            return user
+        default:
+            return nil
+        }
     }
 
+    init(keychainService: KeychainService = .shared, authService: AuthenticationServiceProtocol) {
+        
+        self.keychainService = keychainService
+        self.authService = authService
+
+        Task {
+            await self.checkForExistingAuth()
+        }
+    }
+
+    @MainActor
+    func login(username: String, password: String, serverURL: URL) async throws {
+        isLoading = true
+        defer {
+            isLoading = false
+        }
+        status = .loading
+
+        do {
+            let (token, user) = try await authService.login(username: username, password: password, serverURL: serverURL)
+            status = .authenticated(user)
+        } catch {
+            status = .unauthenticated
+            throw error
+        }
+    }
+
+    @MainActor
     func logout() {
         keychainService.deleteToken()
-        isLoggedIn = false
+        status = .unauthenticated
+    }
+
+    @MainActor
+    func checkForExistingAuth() async {
+
+        guard let token = keychainService.getToken(), let serverURL = keychainService.getServerURL() else {
+            status = .unauthenticated
+            return
+        }
+
+        status = .loading
+        isLoading = true
+        defer {
+            isLoading = false
+        }
+
+        do {
+            let user = try await authService.validateToken(token: token, serverURL: serverURL)
+            status = .authenticated(user)
+        } catch {
+            keychainService.deleteToken()
+            status = .unauthenticated
+        }
     }
     
     var hasServerURLIssue: Bool {

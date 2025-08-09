@@ -6,6 +6,9 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     
     private(set) var serverURL: URL?
     private var session: URLSession
+    
+    private let authMiddleware = AuthenticationMiddleware()
+    
     var client: Client?
     
     init(serverURL: URL?) {
@@ -26,7 +29,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         self.client = Client(
             serverURL: url,
             transport: URLSessionTransport(),
-            middlewares: [AuthenticationMiddleware()]
+            middlewares: [self.authMiddleware]
         )
     }
     
@@ -54,6 +57,12 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                 guard let token = jsonResponse.access_token else {
                     throw MealieAPIError.custom("No access_token in response.")
                 }
+                
+                let savedToKeyChain = KeychainService.shared.saveToken(token, serverURL: self.serverURL!)
+                if !savedToKeyChain {
+                    AppLogger.warning("Unable to Save Token to Keychain")
+                }
+                
                 return token
                 
             case .unprocessableContent(let response):
@@ -86,6 +95,13 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.networkError(error)
         }
     
+    }
+    
+    func fetchUserDetails() async throws -> User {
+        
+        let userDetails = try await getCurrentUser()
+        return User(from: userDetails)
+        
     }
     
     // MARK: - Recipes
@@ -404,7 +420,9 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.custom("Client not initialized")
         }
         
-        let input = Operations.get_logged_in_user_api_users_self_get.Input()
+        let input = Operations.get_logged_in_user_api_users_self_get.Input(
+            headers: .init()
+        )
         
         let output = try await client.get_logged_in_user_api_users_self_get(input)
         

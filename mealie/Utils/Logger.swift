@@ -9,4 +9,8 @@ struct AppLogger {
         }
         print("----------------------------------")
     }
-} 
+    
+    static func warning(_ message: String) {
+        print("⚠️ WARNING: \(message)")
+    }
+}

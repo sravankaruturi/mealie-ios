@@ -220,6 +220,51 @@ final class Recipe {
             isFavorite: false // Default to false for API recipes
         )
     }
+    
+    convenience init(
+        userId: String = "",
+        groupId: String = "",
+        houseHoldId: String = "",
+        name: String = "",
+        slug: String = ""
+    ) {
+        
+        let remoteId = UUID().uuidString
+        let userId = userId
+        let groupId = groupId
+        let houseHoldId = houseHoldId
+        let name = name
+        let slug = slug
+        let image: String? = nil
+        let recipeDescription = ""
+        let recipeServings = 0
+        let recipeYieldQuantity = 0
+        
+        self.init(
+            remoteId: remoteId,
+            userId: userId,
+            groupId: groupId,
+            houseHoldId: houseHoldId,
+            name: name,
+            slug: slug,
+            image: nil,
+            recipeDescription: "",
+            recipeServings: 0,
+            recipeYieldQuantity: 0,
+            recipeYield: nil,
+            totalTime: nil,
+            prepTime: nil,
+            cookTime: nil,
+            performTime: nil,
+            rating: nil,
+            orgUrl: nil,
+            dateAdded: nil,
+            dateUpdated: nil,
+            createdAt: nil,
+            lastMade: nil,
+            update_at: nil)
+        
+    }
 }
 
 // MARK: - Supporting Classes

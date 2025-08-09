@@ -57,18 +57,29 @@ struct mealieApp: App {
         }
     }()
     
-    private var mealieAPIService = MealieAPIService(serverURL: nil)
-    private var authState: AuthenticationState
+    @State private var appState = AppState()
     
-    init() {
-        self.authState = AuthenticationState(mealieAPIService: mealieAPIService)
-    }
-
     var body: some Scene {
         
         WindowGroup {
-            ContentView(mealieAPIService: self.mealieAPIService, authState: authState)
+            ContentView(mealieAPIService: appState.mealieAPIService, authState: appState.authState)
+                .environment(appState.authState)
         }
         .modelContainer(sharedModelContainer)
     }
+}
+
+@Observable
+final class AppState {
+
+    let mealieAPIService: MealieAPIServiceProtocol
+    let authService: AuthenticationServiceProtocol
+    let authState: AuthenticationState
+
+    init() {
+        self.mealieAPIService = MealieAPIService(serverURL: nil)
+        self.authService = AuthenticationService(mealieAPIService: mealieAPIService)
+        self.authState = AuthenticationState(authService: authService)
+    }
+
 }

@@ -34,3 +34,15 @@ func parseAPIDate(_ dateString: String?) -> Date? {
 func parseAPIDateForSort(_ dateString: String?) -> Date {
     return parseAPIDate(dateString) ?? .distantPast
 } 
+
+/// This is a simple helper to format the date with UTC timezone and start of the day to remove the time.
+/// Mealie API requires some dates to be in this format.
+func getDateStringForAPI(_ date: Date) -> String {
+    
+    var utcCalendar = Calendar.current
+    utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    let startOfUTCToday = utcCalendar.startOfDay(for: date)
+    let currentDateString = isoFormatter.string(from: startOfUTCToday)
+    return currentDateString
+    
+}

@@ -41,6 +41,7 @@ protocol MealieAPIServiceProtocol {
     
     // MARK: - Authentication
     func login(username: String, password: String) async throws -> String
+    func fetchUserDetails() async throws -> User
     
     // MARK: - Recipes
     func fetchAllRecipes(page: Int, perPage: Int) async throws -> [Recipe]

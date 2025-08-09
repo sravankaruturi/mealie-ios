@@ -9,6 +9,7 @@ struct RecipeListView: View {
     @State private var searchText: String = ""
     @State private var showAddRecipeOptions = false
     @State private var showURLImportSheet = false
+    @State private var showManualImportSheet = false
     @State private var selectedRecipe: Recipe? // Recipe to navigate to after import
     
     @Environment(\.modelContext) private var modelContext
@@ -83,7 +84,10 @@ struct RecipeListView: View {
                                     showURLImportSheet.toggle()
                                 }
                             }, onManualImport: {
-                                
+                                withAnimation {
+                                    showAddRecipeOptions.toggle()
+                                    showManualImportSheet.toggle()
+                                }
                             }
                         )
                         .padding(.bottom, 10)
@@ -125,6 +129,16 @@ struct RecipeListView: View {
             )
             .presentationDetents([.medium, .fraction(0.3)])
         }
+        .sheet(isPresented: $showManualImportSheet) {
+            var recipe: Recipe = Recipe()
+            EditRecipeView(
+                mealieAPIService: self.mealieAPIService,
+                recipe: recipe
+            )
+            .presentationDetents([.large])
+        }
+        
+        
     }
     
     private func navigateToRecipeBySlug(_ recipeSlug: String) {

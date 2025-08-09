@@ -15,7 +15,7 @@ struct ContentView: View {
             if authState.isLoggedIn {
                 MainTabView(mealieAPIService: mealieAPIService)
             } else {
-                LoginView(mealieAPIService: mealieAPIService)
+                LoginView()
             }
             
             VStack(spacing: 0) {

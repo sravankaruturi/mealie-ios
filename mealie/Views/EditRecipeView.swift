@@ -6,24 +6,27 @@ struct EditRecipeBodyView : View {
     @Environment(\.dismiss) var dismiss
     
     let modelContext: ModelContext
+    let user: User
     
     @State private var viewModel: EditRecipeViewModel
     @State private var nutrition: String = ""
     @State private var editingIngredientIndex: Int? = nil
     
-    init(recipe: Recipe, modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
+    init(recipe: Recipe, modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol, user: User) {
         self.modelContext = modelContext
-        self.viewModel = EditRecipeViewModel(modelContext: modelContext, recipe: recipe, mealieAPIService: mealieAPIService)
+        self.user = user
+        self.viewModel = EditRecipeViewModel(modelContext: modelContext, recipe: recipe, mealieAPIService: mealieAPIService, user: user)
     }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    nutritionSection
+                    nameSection
+//                    nutritionSection
                     photosSection
                     websiteSection
-                    tagsSection
+//                    tagsSection
                     ingredientsSection
                     instructionsSection
                 }
@@ -81,6 +84,28 @@ struct EditRecipeBodyView : View {
         }
     }
     
+    private var nameSection: some View {
+        VStack{
+            TextField("Name", text: $viewModel.name)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .onChange(of: viewModel.name) {
+                    viewModel.updateSlugBasedOnName()
+                }
+            
+            HStack{
+                Text("Slug: \(viewModel.slug)")
+                    .font(.caption)
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+        }
+    }
+    
     private var nutritionSection: some View {
         TextField("Add Nutritional Information", text: $nutrition)
             .padding()
@@ -119,34 +144,13 @@ struct EditRecipeBodyView : View {
     private var websiteSection: some View {
         VStack(spacing: 0) {
             EmptyView()
-//            HStack {
-//                Text("Website")
-//                Spacer()
-//                Text(viewModel.website.isEmpty ? "Optional" : viewModel.website)
-//                    .foregroundColor(.secondary)
-//            }
-//            .padding()
-//            Divider()
-//            HStack {
-//                Text("Folders")
-//                Spacer()
-//                Text("") // Placeholder for folder selection
-//                Text("1 Selected")
-//                    .foregroundColor(.secondary)
-//                Image(systemName: "chevron.right")
-//                    .foregroundColor(.secondary)
-//            }
-//            .padding()
-//            Divider()
-//            HStack {
-//                Text("Household")
-//                Spacer()
-//                Text("Siri Sravan")
-//                    .foregroundColor(.secondary)
-//                Image(systemName: "chevron.right")
-//                    .foregroundColor(.secondary)
-//            }
-//            .padding()
+            HStack {
+                Text("Website")
+                Spacer()
+                TextField("Website URL", text: $viewModel.orgURL)
+            }
+            .padding()
+            Divider()
         }
         .background(Color(.systemGray6))
         .cornerRadius(10)
@@ -297,12 +301,14 @@ struct EditRecipeView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
     
+    @Environment(AuthenticationState.self) var authState
+    
     var mealieAPIService: MealieAPIServiceProtocol
     
     let recipe: Recipe
     
     var body: some View {
-        EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService)
+        EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: authState.user!)
     }
     
 }
@@ -523,6 +529,7 @@ extension View {
     )
     
     let mockAPI = MockMealieAPIService()
+    let user = User(id: "test", email: "test@test.com", group: "", household: "", groupId: "", groupSlug: "", householdId: "", householdSlug: "")
     
     EditRecipeView(mealieAPIService: mockAPI, recipe: sampleRecipe)
 }

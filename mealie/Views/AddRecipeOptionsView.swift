@@ -65,7 +65,7 @@ struct AddRecipeOptionsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .shadow(radius: 4)
             .onTapGesture {
-                
+                onManualImport()
             }
             
         }
@@ -78,46 +78,3 @@ struct AddRecipeOptionsView: View {
 #Preview {
     AddRecipeOptionsView(onURLImport: { }, onManualImport: { })
 }
-
-//
-//// Sheet view for adding recipes
-//struct AddRecipeSheetView: View {
-//    @Environment(\.dismiss) var dismiss
-//    @Environment(\.modelContext) private var modelContext
-//    let onURLImport: () -> Void
-//    
-//    var body: some View {
-//        NavigationStack {
-//            VStack(spacing: 32) {
-//                Spacer()
-//                Button(action: {
-//                    // TODO: Implement manual recipe form
-//                    dismiss()
-//                }) {
-//                    Text("Manual")
-//                        .frame(maxWidth: .infinity)
-//                }
-//                .buttonStyle(.borderedProminent)
-//                
-//                Button(action: {
-//                    onURLImport()
-//                }) {
-//                    Text("From URL")
-//                        .frame(maxWidth: .infinity)
-//                }
-//                .buttonStyle(.bordered)
-//                Spacer()
-//            }
-//            .padding()
-//            .navigationTitle("Add Recipe")
-//            .navigationBarTitleDisplayMode(.inline)
-//            .toolbar {
-//                ToolbarItem(placement: .navigationBarLeading) {
-//                    Button("Cancel") {
-//                        dismiss()
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}

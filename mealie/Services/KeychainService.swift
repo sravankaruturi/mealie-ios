@@ -8,6 +8,11 @@ final class KeychainService {
     
     private init() {}
     
+    /// Saves the token into the Keychain. Returns True if it's successful
+    /// - Parameters:
+    ///     - token: Token to Authenticate this with.
+    ///     - serverURL: The Server URL to hit
+    /// - Returns: True if save is successful. False otherwise.
     func saveToken(_ token: String, serverURL: URL) -> Bool {
         guard let data = token.data(using: .utf8) else { return false }
         let query: [String: Any] = [

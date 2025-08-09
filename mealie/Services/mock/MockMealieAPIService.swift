@@ -33,6 +33,14 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
+    func fetchUserDetails() async throws -> User {
+        
+        try await Task.sleep(nanoseconds: 200_000_000)
+        
+        return User(id: "testing", email: "Test@User.con", group: "Group", household: "Household", groupId: "Group ID", groupSlug: "GroupSlug", householdId: "houseHold ID", householdSlug: "Householdslug")
+        
+    }
+    
     // MARK: - Recipes
     func fetchAllRecipes(page: Int, perPage: Int) async throws -> [Recipe] {
         // Simulate network delay

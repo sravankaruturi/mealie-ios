@@ -7,6 +7,7 @@ class EditRecipeViewModel {
     
     private let apiService: MealieAPIServiceProtocol
     private let recipe: Recipe
+    private let user: User
     var modelContext: ModelContext
     
     var isLoading = false
@@ -15,22 +16,28 @@ class EditRecipeViewModel {
     
     // Editable fields
     var name: String
+    var slug: String
     var description: String
     var prepTime: String
     var cookTime: String
     var performTime: String
     var servings: String
     var yield: String
+    var orgURL: String
     var ingredients: [Ingredient]
     var instructions: [Instruction]
 //    var photoImage: UIImage
     
-    init(modelContext: ModelContext, recipe: Recipe, mealieAPIService: MealieAPIServiceProtocol) {
+    init(modelContext: ModelContext, recipe: Recipe, mealieAPIService: MealieAPIServiceProtocol, user: User) {
         self.modelContext = modelContext
         self.recipe = recipe
+        self.user = user
+        
         
         // Initialize editable fields with current recipe data
         self.name = recipe.name ?? ""
+        self.slug = recipe.slug
+        self.orgURL = recipe.orgUrl ?? ""
         self.description = recipe.recipeDescription
         self.prepTime = recipe.prepTime ?? ""
         self.cookTime = recipe.cookTime ?? ""
@@ -40,6 +47,7 @@ class EditRecipeViewModel {
         self.ingredients = recipe.ingredients.sorted(by: { $0.orderIndex < $1.orderIndex })
         self.instructions = recipe.instructions
         self.apiService = mealieAPIService
+        
     }
     
     func saveRecipe() async {
@@ -48,12 +56,13 @@ class EditRecipeViewModel {
         
         // Declare all variables at the function level to avoid scope issues
         var recipeName: String = ""
+        var recipeSlug: String = ""
+        var recipeOrgURL: String?
         var cleanDescription: String = ""
         var cleanYield: String = ""
         var finalUserId: String = ""
         var finalGroupId: String = ""
         var finalHouseholdId: String = ""
-        var finalSlug: String = ""
         var dateAdded: String = ""
         var dateUpdated: String = ""
         var createdAt: String = ""
@@ -69,6 +78,8 @@ class EditRecipeViewModel {
             print("🔧 EditRecipeViewModel: Group ID: \(recipe.groupId)")
             print("🔧 EditRecipeViewModel: Household ID: \(recipe.houseHoldId)")
             print("🔧 EditRecipeViewModel: Name: \(name)")
+            print("🔧 EditRecipeViewModel: Slug: \(slug)")
+            print("🔧 EditRecipeViewModel: OrgURL: \(orgURL)")
             print("🔧 EditRecipeViewModel: Description: \(description)")
             print("🔧 EditRecipeViewModel: Servings: \(servings)")
             print("🔧 EditRecipeViewModel: Ingredients count: \(ingredients.count)")
@@ -100,6 +111,8 @@ class EditRecipeViewModel {
             
             // Ensure recipe name is not empty
             recipeName = name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Recipe" : name
+            recipeSlug = slug.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? UUID().uuidString : slug
+            recipeOrgURL = orgURL.isEmpty ? nil : orgURL
             
             // Clean up text fields to remove problematic characters
             cleanDescription = description
@@ -112,29 +125,29 @@ class EditRecipeViewModel {
                 .replacingOccurrences(of: "\n", with: " ")
                 .replacingOccurrences(of: "\r", with: " ")
             
+            finalUserId = !recipe.userId.isEmpty ? recipe.userId : user.id
+            finalGroupId = recipe.groupId.isEmpty ? user.groupId : recipe.groupId
+            finalHouseholdId = recipe.houseHoldId.isEmpty ? user.householdId : recipe.houseHoldId
+            
             // Validate critical fields
-            guard !recipe.userId.isEmpty else {
+            guard !finalUserId.isEmpty else {
                 throw MealieAPIError.custom("User ID is required")
             }
-            guard !recipe.groupId.isEmpty else {
+            guard !finalGroupId.isEmpty else {
                 throw MealieAPIError.custom("Group ID is required")
             }
-            guard !recipe.houseHoldId.isEmpty else {
+            guard !finalHouseholdId.isEmpty else {
                 throw MealieAPIError.custom("Household ID is required")
             }
             
             // Ensure date fields are properly formatted
-            let currentDate = ISO8601DateFormatter().string(from: Date())
+            let currentDate = getDateStringForAPI(Date())
             dateAdded = recipe.dateAdded?.isEmpty == false ? recipe.dateAdded! : currentDate
             dateUpdated = currentDate
             createdAt = recipe.createdAt?.isEmpty == false ? recipe.createdAt! : currentDate
             updateAt = currentDate
             
-            // Ensure all required fields have proper values
-            finalUserId = recipe.userId.isEmpty ? "unknown" : recipe.userId
-            finalGroupId = recipe.groupId.isEmpty ? "unknown" : recipe.groupId
-            finalHouseholdId = recipe.houseHoldId.isEmpty ? "unknown" : recipe.houseHoldId
-            finalSlug = recipe.slug.isEmpty ? "unknown" : recipe.slug
+
             
             // Convert ingredients to API format
             apiIngredients = cleanedIngredients.map { ingredient in
@@ -210,7 +223,7 @@ class EditRecipeViewModel {
                 householdId: finalHouseholdId,
                 groupId: finalGroupId,
                 name: recipeName,
-                slug: finalSlug,
+                slug: recipeSlug,
                 image: recipe.image.flatMap { imageString in
                     // Only include image if it's not empty and is a valid string
                     let cleanImageString = imageString.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -228,7 +241,7 @@ class EditRecipeViewModel {
                 tags: [],
                 tools: [],
                 rating: recipe.rating.map { Double($0) },
-                orgURL: recipe.orgUrl,
+                orgURL: recipeOrgURL,
                 dateAdded: dateAdded,
                 dateUpdated: dateUpdated,
                 createdAt: createdAt,
@@ -252,13 +265,14 @@ class EditRecipeViewModel {
             print("    - User ID: \(finalUserId)")
             print("    - Group ID: \(finalGroupId)")
             print("    - Household ID: \(finalHouseholdId)")
-            print("    - Slug: \(finalSlug)")
+            print("    - Slug: \(recipeSlug)")
+            print("    - OrgURL: \(recipeOrgURL ?? "NIL")")
             print("    - Name: \(recipeName)")
             print("    - Ingredients: \(apiIngredients.count)")
             print("    - Instructions: \(apiInstructions.count)")
             
             // Update the recipe on the server
-            try await apiService.updateRecipe(slug: recipe.slug, recipeData: recipeInput)
+            try await apiService.updateRecipe(slug: recipeSlug, recipeData: recipeInput)
             
             print("🔧 EditRecipeViewModel: API call successful, updating local data...")
             
@@ -345,4 +359,10 @@ class EditRecipeViewModel {
             removeInstruction(at: IndexSet(integer: idx))
         }
     }
-} 
+    
+    func updateSlugBasedOnName() {
+        
+        self.slug = name.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "-").lowercased()
+        
+    }
+}
