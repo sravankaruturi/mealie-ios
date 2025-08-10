@@ -91,18 +91,23 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
         try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
         // Generate a slug from the recipe name
-        let recipeSlug = recipeName.lowercased()
+        let recipeSlug = recipeName
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .lowercased()
             .replacingOccurrences(of: " ", with: "-")
             .replacingOccurrences(of: "[^a-z0-9-]", with: "", options: .regularExpression)
+
+        let finalSlug = recipeSlug.isEmpty ? "recipe-\(UUID().uuidString)" : recipeSlug
         
         // Check if a recipe with the same slug already exists
-        guard !mockRecipes.contains(where: { $0.slug == recipeSlug }) else {
+        guard !mockRecipes.contains(where: { $0.slug == finalSlug }) else {
             throw MealieAPIError.custom("Recipe with name '\(recipeName)' already exists")
         }
         
-        let newRecipe = createMockRecipe(slug: recipeSlug)
+        let newRecipe = createMockRecipe(slug: finalSlug)
         mockRecipes.append(newRecipe)
-        return newRecipe.slug
+        return finalSlug
     }
     
     func parseRecipeURL(url: URL) async throws -> String {
