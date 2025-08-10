@@ -7,15 +7,17 @@ struct EditRecipeBodyView : View {
     
     let modelContext: ModelContext
     let user: User
+    let isNewRecipe: Bool
     
     @State private var viewModel: EditRecipeViewModel
     @State private var nutrition: String = ""
     @State private var editingIngredientIndex: Int? = nil
     
-    init(recipe: Recipe, modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol, user: User) {
+    init(recipe: Recipe, modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol, user: User, isNewRecipe: Bool) {
         self.modelContext = modelContext
         self.user = user
         self.viewModel = EditRecipeViewModel(modelContext: modelContext, recipe: recipe, mealieAPIService: mealieAPIService, user: user)
+        self.isNewRecipe = isNewRecipe
     }
     
     var body: some View {
@@ -43,7 +45,7 @@ struct EditRecipeBodyView : View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Update") {
                         Task {
-                            await viewModel.saveRecipe()
+                            await viewModel.saveRecipe(isNew: isNewRecipe)
                             if viewModel.showSuccess {
                                 dismiss()
                             }
@@ -306,9 +308,16 @@ struct EditRecipeView: View {
     var mealieAPIService: MealieAPIServiceProtocol
     
     let recipe: Recipe
+    let isNewRecipe: Bool
     
     var body: some View {
-        EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: authState.user!)
+        Group {
+            if let user = authState.user {
+                EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: user, isNewRecipe: isNewRecipe)
+            } else {
+                Text("Loading... user is not logged in")
+            }
+        }
     }
     
 }
@@ -531,5 +540,5 @@ extension View {
     let mockAPI = MockMealieAPIService()
     let user = User(id: "test", email: "test@test.com", group: "", household: "", groupId: "", groupSlug: "", householdId: "", householdSlug: "")
     
-    EditRecipeView(mealieAPIService: mockAPI, recipe: sampleRecipe)
+    EditRecipeView(mealieAPIService: mockAPI, recipe: sampleRecipe, isNewRecipe: false)
 }

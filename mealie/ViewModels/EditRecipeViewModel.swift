@@ -50,7 +50,8 @@ class EditRecipeViewModel {
         
     }
     
-    func saveRecipe() async {
+    func saveRecipe(isNew: Bool = false) async {
+        
         isLoading = true
         error = nil
         
@@ -147,8 +148,6 @@ class EditRecipeViewModel {
             createdAt = recipe.createdAt?.isEmpty == false ? recipe.createdAt! : currentDate
             updateAt = currentDate
             
-
-            
             // Convert ingredients to API format
             apiIngredients = cleanedIngredients.map { ingredient in
                 // Clean up the ingredient name by removing quantities and units from the name
@@ -215,10 +214,20 @@ class EditRecipeViewModel {
             for (index, instruction) in apiInstructions.enumerated() {
                 print("    \(index): \(instruction.text ?? "No text")")
             }
+
+            var remoteId = recipe.remoteId
+            if isNew {
+                let slug = try await apiService.addRecipeManual(recipeName: recipeName)
+                print("🔧 EditRecipeViewModel: Recipe added with slug: \(slug)")
+                let serverRecipe = try await apiService.fetchRecipeDetails(slug: slug)
+                recipeSlug = serverRecipe.slug
+                self.slug = serverRecipe.slug
+                remoteId = serverRecipe.remoteId
+            }
             
             // Create the recipe input data
             let recipeInput = Components.Schemas.Recipe_hyphen_Input(
-                id: recipe.remoteId,
+                id: remoteId,
                 userId: finalUserId,
                 householdId: finalHouseholdId,
                 groupId: finalGroupId,
@@ -270,13 +279,15 @@ class EditRecipeViewModel {
             print("    - Name: \(recipeName)")
             print("    - Ingredients: \(apiIngredients.count)")
             print("    - Instructions: \(apiInstructions.count)")
-            
+                        
             // Update the recipe on the server
             try await apiService.updateRecipe(slug: recipeSlug, recipeData: recipeInput)
             
             print("🔧 EditRecipeViewModel: API call successful, updating local data...")
             
             // Update local recipe data
+            recipe.remoteId = remoteId
+            recipe.slug = recipeSlug
             recipe.name = recipeName
             recipe.recipeDescription = cleanDescription
             recipe.prepTime = prepTime
@@ -317,6 +328,7 @@ class EditRecipeViewModel {
             self.isLoading = false
         }
     }
+    
     func addIngredient() {
         let newIngredient = Ingredient(orderIndex: ingredients.count, name: "", quantity: 0, unit: IngredientUnit(name: ""), originalText: "", note: "")
         ingredients.append(newIngredient)

@@ -104,7 +104,7 @@ struct RecipeDetailView: View {
             }
         }
         .sheet(isPresented: $showEditSheet) {
-            EditRecipeView(mealieAPIService: self.mealieAPIService, recipe: recipe)
+            EditRecipeView(mealieAPIService: self.mealieAPIService, recipe: recipe, isNewRecipe: false)
         }
     }
 }
