@@ -133,7 +133,8 @@ struct RecipeListView: View {
             var recipe: Recipe = Recipe()
             EditRecipeView(
                 mealieAPIService: self.mealieAPIService,
-                recipe: recipe
+                recipe: recipe,
+                isNewRecipe: true
             )
             .presentationDetents([.large])
         }

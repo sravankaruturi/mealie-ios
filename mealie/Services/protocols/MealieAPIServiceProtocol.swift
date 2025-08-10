@@ -47,7 +47,7 @@ protocol MealieAPIServiceProtocol {
     func fetchAllRecipes(page: Int, perPage: Int) async throws -> [Recipe]
     func fetchAllRecipesOptimized(existingRecipes: [Recipe], page: Int, perPage: Int) async throws -> [Recipe]
     func fetchRecipeDetails(slug: String) async throws -> Recipe
-    func addRecipeManual(recipeData: [String: Any]) async throws -> Recipe
+    func addRecipeManual(recipeSlug: String) async throws -> String
     func parseRecipeURL(url: URL) async throws -> String
     func addRecipeFromURL(url: URL) async throws -> Recipe
     func updateRecipe(slug: String, recipeData: Components.Schemas.Recipe_hyphen_Input) async throws

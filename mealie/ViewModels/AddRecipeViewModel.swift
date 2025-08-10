@@ -28,7 +28,7 @@ final class AddRecipeViewModel {
         self.recipesViewModel = recipesViewModel
     }
     
-    func addManualRecipe() async {
+    func addManualRecipe() async throws {
         isLoading = true
         error = nil
         defer { isLoading = false }
@@ -41,16 +41,22 @@ final class AddRecipeViewModel {
             "servings": servings,
             // ...add ingredients and instructions
         ]
-        do {
-            let recipe = try await apiService.addRecipeManual(recipeData: recipeData)
-            await MainActor.run {
-                modelContext.insert(recipe)
-                try? modelContext.save()
-                showSuccess = true
-            }
-        } catch {
-            self.error = error.localizedDescription
-        }
+        
+//        let recipe = Recipe()
+//        
+//        do {
+//            let recipe = try await apiService.addRecipeManual(recipe: recipe)
+//            await MainActor.run {
+//                modelContext.insert(recipe)
+//                try? modelContext.save()
+//                showSuccess = true
+//            }
+//        } catch {
+//            self.error = error.localizedDescription
+//        }
+        
+        throw MealieAPIError.custom("Not implemented")
+        
     }
     
     func addRecipeFromURL(_ url: URL) async {

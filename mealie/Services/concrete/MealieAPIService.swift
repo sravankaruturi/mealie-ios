@@ -258,9 +258,28 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
-    func addRecipeManual(recipeData: [String: Any]) async throws -> Recipe {
+    func addRecipeManual(recipeSlug: String) async throws -> String {
+
         // POST /api/recipes
-        throw MealieAPIError.custom("Not implemented")
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized")
+        }
+        
+        let createRecipeInput = Components.Schemas.CreateRecipe(name: recipeSlug)
+        let body : Operations.create_one_api_recipes_post.Input.Body = .json(createRecipeInput)
+        
+        let input = Operations.create_one_api_recipes_post.Input(body: body)
+        let output = try await client.create_one_api_recipes_post(input)
+
+        switch output {
+        case .created(let response):
+            return try response.body.json
+        case .unprocessableContent(let response):
+            throw MealieAPIError.custom("Validation Error: \(response)")
+        default:
+            throw MealieAPIError.custom("Failed to add recipe.")
+        }
+        
     }
     
     func parseRecipeURL(url: URL) async throws -> String {

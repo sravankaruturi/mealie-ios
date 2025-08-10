@@ -86,13 +86,13 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
         return newRecipe
     }
     
-    func addRecipeManual(recipeData: [String: Any]) async throws -> Recipe {
+    func addRecipeManual(recipeSlug: String) async throws -> String {
         // Simulate network delay
         try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
         let newRecipe = createMockRecipe(slug: "manual-recipe-\(UUID().uuidString)")
         mockRecipes.append(newRecipe)
-        return newRecipe
+        return newRecipe.slug
     }
     
     func parseRecipeURL(url: URL) async throws -> String {
