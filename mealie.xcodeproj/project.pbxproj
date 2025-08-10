@@ -64,6 +64,11 @@
 			path = mealieUITests;
 			sourceTree = "<group>";
 		};
+		F66AA37A2E486A8C00ABD9D7 /* ci_scripts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ci_scripts;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +102,7 @@
 		F63867852DFE913C00244F38 = {
 			isa = PBXGroup;
 			children = (
+				F66AA37A2E486A8C00ABD9D7 /* ci_scripts */,
 				F63867902DFE913C00244F38 /* mealie */,
 				F63867A02DFE913D00244F38 /* mealieTests */,
 				F63867AA2DFE913D00244F38 /* mealieUITests */,
@@ -132,6 +138,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F63867902DFE913C00244F38 /* mealie */,
+				F66AA37A2E486A8C00ABD9D7 /* ci_scripts */,
 			);
 			name = "mealie-ios";
 			packageProductDependencies = (
