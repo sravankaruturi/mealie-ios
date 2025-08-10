@@ -217,9 +217,11 @@ class EditRecipeViewModel {
 
             var remoteId = recipe.remoteId
             if isNew {
-                let slug = try await apiService.addRecipeManual(recipeSlug: recipeSlug)
+                let slug = try await apiService.addRecipeManual(recipeName: recipeName)
                 print("🔧 EditRecipeViewModel: Recipe added with slug: \(slug)")
                 let serverRecipe = try await apiService.fetchRecipeDetails(slug: slug)
+                recipeSlug = serverRecipe.slug
+                self.slug = serverRecipe.slug
                 remoteId = serverRecipe.remoteId
             }
             
@@ -284,6 +286,8 @@ class EditRecipeViewModel {
             print("🔧 EditRecipeViewModel: API call successful, updating local data...")
             
             // Update local recipe data
+            recipe.remoteId = remoteId
+            recipe.slug = recipeSlug
             recipe.name = recipeName
             recipe.recipeDescription = cleanDescription
             recipe.prepTime = prepTime

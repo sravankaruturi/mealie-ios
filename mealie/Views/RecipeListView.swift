@@ -11,6 +11,9 @@ struct RecipeListView: View {
     @State private var showURLImportSheet = false
     @State private var showManualImportSheet = false
     @State private var selectedRecipe: Recipe? // Recipe to navigate to after import
+
+    @State private var draftManualRecipe = Recipe() // This is for manual recipe creation.
+
     
     @Environment(\.modelContext) private var modelContext
     
@@ -129,11 +132,12 @@ struct RecipeListView: View {
             )
             .presentationDetents([.medium, .fraction(0.3)])
         }
-        .sheet(isPresented: $showManualImportSheet) {
-            var recipe: Recipe = Recipe()
+        .sheet(isPresented: $showManualImportSheet, onDismiss: {
+            draftManualRecipe = Recipe()
+        }) {
             EditRecipeView(
                 mealieAPIService: self.mealieAPIService,
-                recipe: recipe,
+                recipe: draftManualRecipe,
                 isNewRecipe: true
             )
             .presentationDetents([.large])

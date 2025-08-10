@@ -86,11 +86,21 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
         return newRecipe
     }
     
-    func addRecipeManual(recipeSlug: String) async throws -> String {
+    func addRecipeManual(recipeName: String) async throws -> String {
         // Simulate network delay
         try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
-        let newRecipe = createMockRecipe(slug: "manual-recipe-\(UUID().uuidString)")
+        // Generate a slug from the recipe name
+        let recipeSlug = recipeName.lowercased()
+            .replacingOccurrences(of: " ", with: "-")
+            .replacingOccurrences(of: "[^a-z0-9-]", with: "", options: .regularExpression)
+        
+        // Check if a recipe with the same slug already exists
+        guard !mockRecipes.contains(where: { $0.slug == recipeSlug }) else {
+            throw MealieAPIError.custom("Recipe with name '\(recipeName)' already exists")
+        }
+        
+        let newRecipe = createMockRecipe(slug: recipeSlug)
         mockRecipes.append(newRecipe)
         return newRecipe.slug
     }

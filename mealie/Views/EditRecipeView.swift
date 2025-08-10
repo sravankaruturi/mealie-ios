@@ -311,7 +311,13 @@ struct EditRecipeView: View {
     let isNewRecipe: Bool
     
     var body: some View {
-        EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: authState.user!, isNewRecipe: isNewRecipe)
+        Group {
+            if let user = authState.user {
+                EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: user, isNewRecipe: isNewRecipe)
+            } else {
+                Text("Loading... user is not logged in")
+            }
+        }
     }
     
 }

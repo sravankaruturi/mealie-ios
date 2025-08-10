@@ -47,7 +47,11 @@ protocol MealieAPIServiceProtocol {
     func fetchAllRecipes(page: Int, perPage: Int) async throws -> [Recipe]
     func fetchAllRecipesOptimized(existingRecipes: [Recipe], page: Int, perPage: Int) async throws -> [Recipe]
     func fetchRecipeDetails(slug: String) async throws -> Recipe
-    func addRecipeManual(recipeSlug: String) async throws -> String
+    /// Creates a new recipe with the given name and returns its generated slug.
+    /// - Parameter recipeName: The name of the recipe to create
+    /// - Returns: The generated slug for the newly created recipe
+    /// - Throws: MealieAPIError if the recipe creation fails
+    func addRecipeManual(recipeName: String) async throws -> String
     func parseRecipeURL(url: URL) async throws -> String
     func addRecipeFromURL(url: URL) async throws -> Recipe
     func updateRecipe(slug: String, recipeData: Components.Schemas.Recipe_hyphen_Input) async throws
@@ -86,6 +90,16 @@ extension MealieAPIServiceProtocol {
     
     func getRecipeImageURLForKingfisher(recipeId: String) -> URL? {
         return getRecipeImageURLForKingfisher(recipeId: recipeId, imageType: .original)
+    }
+    
+    /// Convenience method that creates a recipe and returns the full Recipe object.
+    /// This provides consistency with addRecipeFromURL(_:) method.
+    /// - Parameter recipeName: The name of the recipe to create
+    /// - Returns: The complete Recipe object for the newly created recipe
+    /// - Throws: MealieAPIError if the recipe creation fails
+    func addRecipeManualAndFetch(recipeName: String) async throws -> Recipe {
+        let slug = try await addRecipeManual(recipeName: recipeName)
+        return try await fetchRecipeDetails(slug: slug)
     }
 }
 

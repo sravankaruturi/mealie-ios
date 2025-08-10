@@ -258,14 +258,14 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
-    func addRecipeManual(recipeSlug: String) async throws -> String {
+    func addRecipeManual(recipeName: String) async throws -> String {
 
         // POST /api/recipes
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
         }
         
-        let createRecipeInput = Components.Schemas.CreateRecipe(name: recipeSlug)
+        let createRecipeInput = Components.Schemas.CreateRecipe(name: recipeName)
         let body : Operations.create_one_api_recipes_post.Input.Body = .json(createRecipeInput)
         
         let input = Operations.create_one_api_recipes_post.Input(body: body)
