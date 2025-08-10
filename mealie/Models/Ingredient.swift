@@ -46,7 +46,7 @@ struct IngredientUnit: Hashable, Identifiable, Codable {
 }
 
 @Model
-final class Ingredient {
+final class Ingredient : Sendable {
     var orderIndex: Int
     var name: String
     var quantity: Double

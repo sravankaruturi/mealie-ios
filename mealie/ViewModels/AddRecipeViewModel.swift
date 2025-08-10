@@ -13,50 +13,10 @@ final class AddRecipeViewModel {
     let modelContext: ModelContext
     let recipesViewModel: RecipesViewModel? // Optional for manual recipes
     
-    // Manual form fields (simplified)
-    var name: String = ""
-    var summary: String = ""
-    var prepTime: String = ""
-    var cookTime: String = ""
-    var servings: String = ""
-    var ingredients: [Ingredient] = []
-    var instructions: [Instruction] = []
-    
     init(apiService: MealieAPIServiceProtocol, modelContext: ModelContext, recipesViewModel: RecipesViewModel? = nil) {
         self.apiService = apiService
         self.modelContext = modelContext
         self.recipesViewModel = recipesViewModel
-    }
-    
-    func addManualRecipe() async throws {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-        // Build recipeData dictionary
-        let recipeData: [String: Any] = [
-            "name": name,
-            "summary": summary,
-            "prepTime": prepTime,
-            "cookTime": cookTime,
-            "servings": servings,
-            // ...add ingredients and instructions
-        ]
-        
-//        let recipe = Recipe()
-//        
-//        do {
-//            let recipe = try await apiService.addRecipeManual(recipe: recipe)
-//            await MainActor.run {
-//                modelContext.insert(recipe)
-//                try? modelContext.save()
-//                showSuccess = true
-//            }
-//        } catch {
-//            self.error = error.localizedDescription
-//        }
-        
-        throw MealieAPIError.custom("Not implemented")
-        
     }
     
     func addRecipeFromURL(_ url: URL) async {

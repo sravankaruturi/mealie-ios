@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 @Model
-final class Instruction {
+final class Instruction : Sendable {
     var id: String?
     var step: Int
     var text: String
