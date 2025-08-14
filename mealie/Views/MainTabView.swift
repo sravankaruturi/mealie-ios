@@ -34,10 +34,10 @@ struct MainTabBodyView : View {
                 .tabItem {
                     Label("Recipes", systemImage: "book")
                 }
-            MealPlanView()
-                .tabItem {
-                    Label("Calendar", systemImage: "calendar")
-                }
+//            MealPlanView()
+//                .tabItem {
+//                    Label("Calendar", systemImage: "calendar")
+//                }
             ProfileView(recipesViewModel: recipesViewModel, mealieAPIService: self.mealieAPIService)
                 .tabItem {
                     Label("Profile", systemImage: "person")
