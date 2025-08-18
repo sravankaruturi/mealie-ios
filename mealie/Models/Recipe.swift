@@ -267,6 +267,48 @@ final class Recipe {
     }
 }
 
+extension Recipe {
+    
+    static var sampleData : Recipe = Recipe(
+        remoteId: "sample",
+        userId: "user",
+        groupId: "group",
+        houseHoldId: "household",
+        name: "Sample Recipe",
+        slug: "sample-recipe",
+        image: nil,
+        recipeDescription: "A sample recipe for testing",
+        recipeServings: 4,
+        recipeYieldQuantity: 0,
+        recipeYield: "4 servings",
+        totalTime: "30",
+        prepTime: "10",
+        cookTime: "20",
+        performTime: "20",
+        rating: nil,
+        orgUrl: nil,
+        dateAdded: "2024-01-01",
+        dateUpdated: "2024-01-01",
+        createdAt: "2024-01-01",
+        lastMade: nil,
+        update_at: "2024-01-01",
+        lastModified: Date(),
+        isFavorite: false,
+        categories: [],
+        tags: [],
+        tools: [],
+        ingredients: [
+            Ingredient(orderIndex: 0, name: "Flour", quantity: 2, unit: IngredientUnit(name: "cups"), originalText: "2 cups flour", note: ""),
+            Ingredient(orderIndex: 1, name: "Sugar", quantity: 1, unit: IngredientUnit(name: "cup"), originalText: "1 cup sugar", note: "")
+        ],
+        instructions: [
+            Instruction(step: 1, text: "Mix flour and sugar"),
+            Instruction(step: 2, text: "Bake at 350°F for 30 minutes")
+        ]
+    )
+    
+}
+
 // MARK: - Supporting Classes
 
 @Model
