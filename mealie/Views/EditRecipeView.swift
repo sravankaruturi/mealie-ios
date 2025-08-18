@@ -538,7 +538,12 @@ extension View {
     )
     
     let mockAPI = MockMealieAPIService()
-    let user = User(id: "test", email: "test@test.com", group: "", household: "", groupId: "", groupSlug: "", householdId: "", householdSlug: "")
     
-    EditRecipeView(mealieAPIService: mockAPI, recipe: sampleRecipe, isNewRecipe: false)
+    var authState = AuthenticationState(authService: MockAuthenticationService())
+    Task {
+        try! await authState.login(username: "test", password: "test", serverURL: URL("")!)
+    }
+    
+    return EditRecipeView(mealieAPIService: mockAPI, recipe: sampleRecipe, isNewRecipe: false)
+        .environment(authState)
 }

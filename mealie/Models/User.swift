@@ -72,3 +72,11 @@ final class User {
     }
     
 }
+
+extension User {
+    
+    static var sampleData: User = User(
+        id: "test", email: "test@test.com", group: "", household: "", groupId: "", groupSlug: "", householdId: "", householdSlug: ""
+    )
+    
+}
