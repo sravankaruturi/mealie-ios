@@ -173,4 +173,16 @@ extension View {
     }
 }
 
+#Preview {
+    IngredientEditSheet(
+        ingredient: .constant(Ingredient.sampleIngredient),
+        onSave: { updated in
+            print("Saved ingredient: \(updated.name)")
+        },
+        onCancel: {
+            print("Cancelled editing")
+        }
+    )
+}
+
 

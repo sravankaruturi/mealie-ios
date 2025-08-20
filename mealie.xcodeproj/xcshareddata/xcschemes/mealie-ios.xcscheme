@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F638678D2DFE913C00244F38"
-               BuildableName = "mealie-ios.app"
-               BlueprintName = "mealie-ios"
+               BuildableName = "mealIO.app"
+               BlueprintName = "mealIO"
                ReferencedContainer = "container:mealie.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -69,8 +69,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F638678D2DFE913C00244F38"
-            BuildableName = "mealie-ios.app"
-            BlueprintName = "mealie-ios"
+            BuildableName = "mealIO.app"
+            BlueprintName = "mealIO"
             ReferencedContainer = "container:mealie.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -86,8 +86,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F638678D2DFE913C00244F38"
-            BuildableName = "mealie-ios.app"
-            BlueprintName = "mealie-ios"
+            BuildableName = "mealIO.app"
+            BlueprintName = "mealIO"
             ReferencedContainer = "container:mealie.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
