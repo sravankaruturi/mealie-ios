@@ -6,31 +6,46 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct IngredientInputView: View {
+    
+    @Environment(\.dismiss) private var dismiss
     
     @State var quantity: String
     @State var selectedUnit: String
     @State var itemName: String
     
+    let originalIngredient: Ingredient? // This is used to update the ingredient if it already exists
+    
+    let onSave: (Ingredient) -> Void
+    
     var body: some View {
         VStack(spacing: 0) {
             // Top Navigation Bar
             HStack {
-                Button("Save") {
-                    print("Save tapped")
+                Button("Cancel") {
+                    dismiss()
                 }
                 .foregroundColor(.blue)
                 
                 Spacer()
                 
+                Button("Save") {
+                    let ingredient = createIngredient()
+                    onSave(ingredient)
+                }
+                .foregroundColor(.blue)
+                
                 Button("Next") {
-                    print("Next tapped")
+                    let ingredient = createIngredient()
+                    onSave(ingredient)
                 }
                 .foregroundColor(.blue)
                 
                 Button("+") {
-                    print("Add tapped")
+                    let ingredient = createIngredient()
+                    onSave(ingredient)
                 }
                 .foregroundColor(.blue)
             }
@@ -68,6 +83,29 @@ struct IngredientInputView: View {
         .background(Color.white.opacity(0.95))
         .cornerRadius(20)
         .shadow(radius: 10)
+    }
+    
+    private func createIngredient() -> Ingredient {
+        let quantityValue = Double(quantity) ?? 0.0
+        let unit = IngredientUnit(name: selectedUnit)
+        let originalText = "\(quantity) \(selectedUnit) \(itemName)"
+
+        if let originalIngredient = originalIngredient {
+            originalIngredient.name = itemName
+            originalIngredient.quantity = quantityValue
+            originalIngredient.unit = unit
+            originalIngredient.originalText = originalText
+            return originalIngredient
+        } else {
+            return Ingredient(
+                orderIndex: 0, // Will be set by the view model
+                name: itemName,
+                quantity: quantityValue,
+                unit: unit,
+                originalText: originalText,
+                note: ""
+            )
+        }
     }
 }
 
@@ -233,7 +271,7 @@ struct KeypadButton: View {
 
 // MARK: - Preview
 #Preview {
-    IngredientInputView(quantity: "1", selectedUnit: "Kg", itemName: "Chicken")
+    IngredientInputView(quantity: "1", selectedUnit: "Kg", itemName: "Chicken", originalIngredient: nil) { _ in }
         .padding()
         .background(Color.gray.opacity(0.1))
 }

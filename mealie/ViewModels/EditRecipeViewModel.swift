@@ -14,6 +14,10 @@ class EditRecipeViewModel {
     var error: String?
     var showSuccess = false
     
+    // Sheet presentation state
+    var isPresentingSheet = false
+    var selectedIngredient: Ingredient?
+    
     // Editable fields
     var name: String
     var slug: String
@@ -330,9 +334,40 @@ class EditRecipeViewModel {
     }
     
     func addIngredient() {
-        let newIngredient = Ingredient(orderIndex: ingredients.count, name: "", quantity: 0, unit: IngredientUnit(name: ""), originalText: "", note: "")
-        ingredients.append(newIngredient)
+        let newIngredient = Ingredient(orderIndex: ingredients.count, name: "", quantity: 0, unit: IngredientUnit(name: "Item"), originalText: "", note: "")
+        selectedIngredient = newIngredient
+        isPresentingSheet = true
     }
+    
+    func editIngredient(_ ingredient: Ingredient) {
+        selectedIngredient = ingredient
+        isPresentingSheet = true
+    }
+    
+    func saveIngredient(_ ingredient: Ingredient) {
+        
+        // Since ingredients are now updated in place, we just need to handle new ingredients
+        if !ingredients.contains(where: { $0.id == ingredient.id }) {
+            // This is a new ingredient, add it
+            ingredients.append(ingredient)
+        }
+        
+        // Update order indices
+        ingredients = ingredients.enumerated().map { (index, ingredient) in
+            var updated = ingredient
+            updated.orderIndex = index
+            return updated
+        }
+        
+        isPresentingSheet = false
+        selectedIngredient = nil
+    }
+    
+    func cancelIngredientEdit() {
+        isPresentingSheet = false
+        selectedIngredient = nil
+    }
+    
     func removeIngredient(at indexSet: IndexSet) {
         ingredients.remove(atOffsets: indexSet)
     }

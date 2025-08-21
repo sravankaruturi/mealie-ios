@@ -11,7 +11,6 @@ struct EditRecipeBodyView : View {
     
     @State internal var viewModel: EditRecipeViewModel
     @State internal var nutrition: String = ""
-    @State internal var editingIngredientIndex: Int? = nil
     
     init(recipe: Recipe, modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol, user: User, isNewRecipe: Bool) {
         self.modelContext = modelContext
@@ -69,16 +68,16 @@ struct EditRecipeBodyView : View {
                     Text(error)
                 }
             }
-            .sheet(isPresented: Binding<Bool>(
-                get: { editingIngredientIndex != nil },
-                set: { if !$0 { editingIngredientIndex = nil } }
-            )) {
-                if let index = editingIngredientIndex {
-                    IngredientEditSheet(
-                        ingredient: $viewModel.ingredients[index],
-                        onSave: { updated in viewModel.ingredients[index] = updated; editingIngredientIndex = nil },
-                        onCancel: { editingIngredientIndex = nil }
-                    )
+            .sheet(isPresented: $viewModel.isPresentingSheet) {
+                if let ingredient = viewModel.selectedIngredient {
+                    IngredientInputView(
+                        quantity: String(ingredient.quantity),
+                        selectedUnit: ingredient.unit.name,
+                        itemName: ingredient.name,
+                        originalIngredient: ingredient
+                    ) { updatedIngredient in
+                        viewModel.saveIngredient(updatedIngredient)
+                    }
                 }
             }
         }

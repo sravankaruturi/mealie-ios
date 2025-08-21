@@ -10,7 +10,7 @@ extension EditRecipeBodyView {
                 Image(systemName: "minus.circle.fill")
                     .foregroundColor(.red)
             }
-            Button(action: { editingIngredientIndex = index }) {
+            Button(action: { viewModel.editIngredient(ingredient) }) {
                 HStack(spacing: 4) {
                     Text(String(ingredient.quantity))
                         .foregroundColor(.blue)
