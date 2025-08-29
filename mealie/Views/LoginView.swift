@@ -58,10 +58,10 @@ struct LoginBodyView: View {
             .disabled(viewModel.isLoading)
             
             Spacer()
-            Text("By clicking continue, you agree to our Terms of Service and Privacy Policy.")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+//            Text("By clicking continue, you agree to our Terms of Service and Privacy Policy.")
+//                .font(.footnote)
+//                .foregroundColor(.secondary)
+//                .multilineTextAlignment(.center)
         }
         .padding()
     }
