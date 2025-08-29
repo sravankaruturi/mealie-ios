@@ -4,6 +4,7 @@ import SwiftUI
 struct IngredientEditSheet: View {
     
     @Binding var ingredient: Ingredient
+    let availableUnits: [Components.Schemas.IngredientUnit_hyphen_Output]
     var onSave: (Ingredient) -> Void
     var onCancel: () -> Void
     
@@ -14,18 +15,18 @@ struct IngredientEditSheet: View {
     
     enum EditingField { case quantity, unit, name }
     
-    let units: [IngredientUnit] = [
-        IngredientUnit(name: "Item"),
-        IngredientUnit(name: "Tablespoon"),
-        IngredientUnit(name: "Teaspoon"),
-        IngredientUnit(name: "Cup"),
-        IngredientUnit(name: "ml"),
-        IngredientUnit(name: "g"),
-        IngredientUnit(name: "kg"),
-        IngredientUnit(name: "oz"),
-        IngredientUnit(name: "lb"),
-        IngredientUnit(name: "bunch")
-    ]
+//    let units: [IngredientUnit] = [
+//        IngredientUnit(name: "Item"),
+//        IngredientUnit(name: "Tablespoon"),
+//        IngredientUnit(name: "Teaspoon"),
+//        IngredientUnit(name: "Cup"),
+//        IngredientUnit(name: "ml"),
+//        IngredientUnit(name: "g"),
+//        IngredientUnit(name: "kg"),
+//        IngredientUnit(name: "oz"),
+//        IngredientUnit(name: "lb"),
+//        IngredientUnit(name: "bunch")
+//    ]
     let fractions = ["¼", "⅓", "½", "⅔", "¾"]
     let numbers = ["1","2","3","4","5","6","7","8","9","0"]
     
@@ -100,8 +101,8 @@ struct IngredientEditSheet: View {
                 }
             } else if editingField == .unit {
                 Picker("Unit", selection: $unit) {
-                    ForEach(units) { u in
-                        Text(u.name).tag(u)
+                    ForEach(availableUnits, id: \.id) { u in
+                        Text(u.name).tag(IngredientUnit(name: u.name))
                     }
                 }
                 .pickerStyle(.wheel)
@@ -176,6 +177,7 @@ extension View {
 #Preview {
     IngredientEditSheet(
         ingredient: .constant(Ingredient.sampleIngredient),
+        availableUnits: [],
         onSave: { updated in
             print("Saved ingredient: \(updated.name)")
         },

@@ -74,7 +74,7 @@ struct EditRecipeBodyView : View {
                         quantity: String(ingredient.quantity),
                         selectedUnit: ingredient.unit.name,
                         itemName: ingredient.name,
-                        originalIngredient: ingredient
+                        originalIngredient: ingredient, availableUnits: viewModel.availableUnits
                     ) { updatedIngredient in
                         viewModel.saveIngredient(updatedIngredient)
                     }
@@ -258,7 +258,8 @@ struct EditRecipeView: View {
     var body: some View {
         Group {
             if let user = authState.user {
-                EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: user, isNewRecipe: isNewRecipe)
+                EditRecipeBodyView(recipe: recipe, modelContext: modelContext, mealieAPIService: self.mealieAPIService, user: user, isNewRecipe: isNewRecipe
+                )
             } else {
                 Text("Loading... user is not logged in")
             }

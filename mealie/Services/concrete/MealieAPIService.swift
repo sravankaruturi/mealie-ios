@@ -576,6 +576,43 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         throw MealieAPIError.custom("Not implemented")
     }
     
+    func fetchAllUnits() async throws -> [Components.Schemas.IngredientUnit_hyphen_Output] {
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized")
+        }
+        
+        let input = Operations.get_all_api_units_get.Input(query: .init(perPage: -1))
+        let output = try await client.get_all_api_units_get(input)
+        
+        switch output {
+        case .ok(let response):
+            let paginationResponse = try response.body.json
+            return paginationResponse.items
+        default:
+            throw MealieAPIError.custom("Failed to fetch units")
+        }
+        
+    }
+    
+    // MARK: - Foods
+    func fetchAllFoods() async throws -> [Components.Schemas.IngredientFood_hyphen_Output] {
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized")
+        }
+
+        // Use perPage: -1 to fetch all food items in a single request
+        let input = Operations.get_all_api_foods_get.Input(query: .init(perPage: -1))
+        let output = try await client.get_all_api_foods_get(input)
+
+        switch output {
+        case .ok(let response):
+            let paginationResponse = try response.body.json
+            return paginationResponse.items
+        default:
+            throw MealieAPIError.custom("Failed to fetch foods.")
+        }
+    }
+    
     // MARK: - Transformation Layer
     // Implement JSON -> SwiftData model transformation here
 } 

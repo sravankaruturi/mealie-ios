@@ -18,6 +18,8 @@ struct IngredientInputView: View {
     
     let originalIngredient: Ingredient? // This is used to update the ingredient if it already exists
     
+    let availableUnits: [Components.Schemas.IngredientUnit_hyphen_Output]
+    
     let onSave: (Ingredient) -> Void
     
     var body: some View {
@@ -37,17 +39,6 @@ struct IngredientInputView: View {
                 }
                 .foregroundColor(.blue)
                 
-                Button("Next") {
-                    let ingredient = createIngredient()
-                    onSave(ingredient)
-                }
-                .foregroundColor(.blue)
-                
-                Button("+") {
-                    let ingredient = createIngredient()
-                    onSave(ingredient)
-                }
-                .foregroundColor(.blue)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
@@ -271,7 +262,7 @@ struct KeypadButton: View {
 
 // MARK: - Preview
 #Preview {
-    IngredientInputView(quantity: "1", selectedUnit: "Kg", itemName: "Chicken", originalIngredient: nil) { _ in }
+    IngredientInputView(quantity: "1", selectedUnit: "Kg", itemName: "Chicken", originalIngredient: nil, availableUnits: [] ) { _ in }
         .padding()
         .background(Color.gray.opacity(0.1))
 }

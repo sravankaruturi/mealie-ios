@@ -56,6 +56,8 @@ protocol MealieAPIServiceProtocol {
     func addRecipeFromURL(url: URL) async throws -> Recipe
     func updateRecipe(slug: String, recipeData: Components.Schemas.Recipe_hyphen_Input) async throws
     func deleteRecipe(slug: String) async throws
+    func fetchAllUnits() async throws -> [Components.Schemas.IngredientUnit_hyphen_Output]
+    func fetchAllFoods() async throws -> [Components.Schemas.IngredientFood_hyphen_Output]
     
     // MARK: - Meal Plan
     func createMealPlanEntry(entryData: [String: Any]) async throws
