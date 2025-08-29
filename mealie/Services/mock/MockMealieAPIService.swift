@@ -143,6 +143,17 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
         mockRecipes.removeAll { $0.slug == slug }
     }
     
+    func fetchAllUnits() async throws -> [Components.Schemas.IngredientUnit_hyphen_Output] {
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        return []
+    }
+    
+    // MARK: - Foods
+    func fetchAllFoods() async throws -> [Components.Schemas.IngredientFood_hyphen_Output] {
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        return []
+    }
+    
     // MARK: - Meal Plan
     func createMealPlanEntry(entryData: [String: Any]) async throws {
         // Simulate network delay

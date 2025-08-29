@@ -30,18 +30,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		F638678E2DFE913C00244F38 /* mealie-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "mealie-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F638679D2DFE913D00244F38 /* mealieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F63867A72DFE913D00244F38 /* mealieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F638678E2DFE913C00244F38 /* mealIO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mealIO.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F638679D2DFE913D00244F38 /* mealIOTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealIOTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F63867A72DFE913D00244F38 /* mealIOUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealIOUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F638680F2DFF2EF500244F38 /* Exceptions for "mealie" folder in "mealie-ios" target */ = {
+		F638680F2DFF2EF500244F38 /* Exceptions for "mealie" folder in "mealIO" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = F638678D2DFE913C00244F38 /* mealie-ios */;
+			target = F638678D2DFE913C00244F38 /* mealIO */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -49,7 +49,7 @@
 		F63867902DFE913C00244F38 /* mealie */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				F638680F2DFF2EF500244F38 /* Exceptions for "mealie" folder in "mealie-ios" target */,
+				F638680F2DFF2EF500244F38 /* Exceptions for "mealie" folder in "mealIO" target */,
 			);
 			path = mealie;
 			sourceTree = "<group>";
@@ -113,9 +113,9 @@
 		F638678F2DFE913C00244F38 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F638678E2DFE913C00244F38 /* mealie-ios.app */,
-				F638679D2DFE913D00244F38 /* mealieTests.xctest */,
-				F63867A72DFE913D00244F38 /* mealieUITests.xctest */,
+				F638678E2DFE913C00244F38 /* mealIO.app */,
+				F638679D2DFE913D00244F38 /* mealIOTests.xctest */,
+				F63867A72DFE913D00244F38 /* mealIOUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -123,9 +123,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F638678D2DFE913C00244F38 /* mealie-ios */ = {
+		F638678D2DFE913C00244F38 /* mealIO */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F63867B12DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealie-ios" */;
+			buildConfigurationList = F63867B12DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIO" */;
 			buildPhases = (
 				F638678A2DFE913C00244F38 /* Sources */,
 				F638678B2DFE913C00244F38 /* Frameworks */,
@@ -140,19 +140,19 @@
 				F63867902DFE913C00244F38 /* mealie */,
 				F66AA37A2E486A8C00ABD9D7 /* ci_scripts */,
 			);
-			name = "mealie-ios";
+			name = mealIO;
 			packageProductDependencies = (
 				F63868072DFE967F00244F38 /* Kingfisher */,
 				F63868192DFFE94500244F38 /* OpenAPIRuntime */,
 				F638681C2DFFE95300244F38 /* OpenAPIURLSession */,
 			);
 			productName = mealie;
-			productReference = F638678E2DFE913C00244F38 /* mealie-ios.app */;
+			productReference = F638678E2DFE913C00244F38 /* mealIO.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F638679C2DFE913D00244F38 /* mealieTests */ = {
+		F638679C2DFE913D00244F38 /* mealIOTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieTests" */;
+			buildConfigurationList = F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOTests" */;
 			buildPhases = (
 				F63867992DFE913D00244F38 /* Sources */,
 				F638679A2DFE913D00244F38 /* Frameworks */,
@@ -166,16 +166,16 @@
 			fileSystemSynchronizedGroups = (
 				F63867A02DFE913D00244F38 /* mealieTests */,
 			);
-			name = mealieTests;
+			name = mealIOTests;
 			packageProductDependencies = (
 			);
 			productName = mealieTests;
-			productReference = F638679D2DFE913D00244F38 /* mealieTests.xctest */;
+			productReference = F638679D2DFE913D00244F38 /* mealIOTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		F63867A62DFE913D00244F38 /* mealieUITests */ = {
+		F63867A62DFE913D00244F38 /* mealIOUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieUITests" */;
+			buildConfigurationList = F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOUITests" */;
 			buildPhases = (
 				F63867A32DFE913D00244F38 /* Sources */,
 				F63867A42DFE913D00244F38 /* Frameworks */,
@@ -189,11 +189,11 @@
 			fileSystemSynchronizedGroups = (
 				F63867AA2DFE913D00244F38 /* mealieUITests */,
 			);
-			name = mealieUITests;
+			name = mealIOUITests;
 			packageProductDependencies = (
 			);
 			productName = mealieUITests;
-			productReference = F63867A72DFE913D00244F38 /* mealieUITests.xctest */;
+			productReference = F63867A72DFE913D00244F38 /* mealIOUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -219,7 +219,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealie" */;
+			buildConfigurationList = F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealIO" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -239,9 +239,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F638678D2DFE913C00244F38 /* mealie-ios */,
-				F638679C2DFE913D00244F38 /* mealieTests */,
-				F63867A62DFE913D00244F38 /* mealieUITests */,
+				F638678D2DFE913C00244F38 /* mealIO */,
+				F638679C2DFE913D00244F38 /* mealIOTests */,
+				F63867A62DFE913D00244F38 /* mealIOUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -297,12 +297,12 @@
 /* Begin PBXTargetDependency section */
 		F638679F2DFE913D00244F38 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = F638678D2DFE913C00244F38 /* mealie-ios */;
+			target = F638678D2DFE913C00244F38 /* mealIO */;
 			targetProxy = F638679E2DFE913D00244F38 /* PBXContainerItemProxy */;
 		};
 		F63867A92DFE913D00244F38 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = F638678D2DFE913C00244F38 /* mealie-ios */;
+			target = F638678D2DFE913C00244F38 /* mealIO */;
 			targetProxy = F63867A82DFE913D00244F38 /* PBXContainerItemProxy */;
 		};
 		F63868202DFFEAE600244F38 /* PBXTargetDependency */ = {
@@ -444,7 +444,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = mealie/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mealie for iOS";
+				INFOPLIST_KEY_CFBundleDisplayName = MealIO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -474,7 +474,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = mealie/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Mealie for iOS";
+				INFOPLIST_KEY_CFBundleDisplayName = MealIO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -508,7 +508,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealie";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealIO.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealIO";
 			};
 			name = Debug;
 		};
@@ -527,7 +527,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealie";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealIO.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealIO";
 			};
 			name = Release;
 		};
@@ -568,7 +568,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealie" */ = {
+		F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealIO" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867AF2DFE913D00244F38 /* Debug */,
@@ -577,7 +577,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F63867B12DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealie-ios" */ = {
+		F63867B12DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIO" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867B22DFE913D00244F38 /* Debug */,
@@ -586,7 +586,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieTests" */ = {
+		F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867B52DFE913D00244F38 /* Debug */,
@@ -595,7 +595,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieUITests" */ = {
+		F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867B82DFE913D00244F38 /* Debug */,

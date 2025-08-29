@@ -14,6 +14,10 @@ class EditRecipeViewModel {
     var error: String?
     var showSuccess = false
     
+    // Sheet presentation state
+    var isPresentingSheet = false
+    var selectedIngredient: Ingredient?
+    
     // Editable fields
     var name: String
     var slug: String
@@ -27,6 +31,9 @@ class EditRecipeViewModel {
     var ingredients: [Ingredient]
     var instructions: [Instruction]
 //    var photoImage: UIImage
+    
+    var availableUnits: [Components.Schemas.IngredientUnit_hyphen_Output] = []
+    var availableFoods: [Components.Schemas.IngredientFood_hyphen_Output] = []
     
     init(modelContext: ModelContext, recipe: Recipe, mealieAPIService: MealieAPIServiceProtocol, user: User) {
         self.modelContext = modelContext
@@ -47,6 +54,11 @@ class EditRecipeViewModel {
         self.ingredients = recipe.ingredients.sorted(by: { $0.orderIndex < $1.orderIndex })
         self.instructions = recipe.instructions
         self.apiService = mealieAPIService
+        
+        Task {
+            await fetchUnits()
+            await fetchFoods()
+        }
         
     }
     
@@ -148,37 +160,44 @@ class EditRecipeViewModel {
             createdAt = recipe.createdAt?.isEmpty == false ? recipe.createdAt! : currentDate
             updateAt = currentDate
             
-            // Convert ingredients to API format
             apiIngredients = cleanedIngredients.map { ingredient in
-                // Clean up the ingredient name by removing quantities and units from the name
                 let cleanName = ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines)
                 
-                // Try to match the unit with standard units, but be more conservative
-                let unitName = ingredient.unit.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                let standardUnit = IngredientUnit.matchUnit(unitName)
-                
-                // Only use fallback for clearly invalid units, preserve more original names
-                let finalUnitName = if unitName.isEmpty || unitName == "to" {
-                    "item"
+                var unitPayload: Components.Schemas.RecipeIngredient_hyphen_Input.unitPayload?
+                let unitNameLowercased = ingredient.unit.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+                // Find a matching unit from the fetched list
+                if let matchedUnit = self.availableUnits.first(where: { $0.name.lowercased() == unitNameLowercased }) {
+                    // If a match is found, use its ID to create the payload
+                    unitPayload = .init(
+                        value1: .init(id: matchedUnit.id, name: matchedUnit.name),
+                        value2: nil
+                    )
                 } else {
-                    standardUnit.name
+                    // As a fallback, if no unit is matched, clear it
+                    unitPayload = nil
                 }
                 
-                let unitPayload = Components.Schemas.RecipeIngredient_hyphen_Input.unitPayload(
-                    value1: nil,
-                    value2: Components.Schemas.CreateIngredientUnit(name: finalUnitName)
-                )
-                let foodPayload = Components.Schemas.RecipeIngredient_hyphen_Input.foodPayload(
-                    value1: nil,
-                    value2: Components.Schemas.CreateIngredientFood(name: cleanName)
-                )
+                var foodPayload: Components.Schemas.RecipeIngredient_hyphen_Input.foodPayload?
+                let foodNameLowercased = cleanName.lowercased()
+
+                // Try to find a matching, existing food item
+                if let matchedFood = self.availableFoods.first(where: { $0.name.lowercased() == foodNameLowercased }) {
+                    // SUCCESS: Match found. Use its ID.
+                    foodPayload = .init(
+                        value1: .init(id: matchedFood.id, name: matchedFood.name),
+                        value2: nil
+                    )
+                } else {
+                    foodPayload = nil
+                }
+                
                 return Components.Schemas.RecipeIngredient_hyphen_Input(
                     quantity: ingredient.quantity,
-                    unit: unitPayload,
+                    unit: unitPayload, // Use the new, correctly structured payload
                     food: foodPayload,
                     note: ingredient.note,
-                    isFood: nil,
-                    disableAmount: true, // Changed from false to true to match schema default
+                    disableAmount: true,
                     display: ingredient.originalText,
                     title: ingredient.title,
                     originalText: ingredient.originalText,
@@ -330,9 +349,40 @@ class EditRecipeViewModel {
     }
     
     func addIngredient() {
-        let newIngredient = Ingredient(orderIndex: ingredients.count, name: "", quantity: 0, unit: IngredientUnit(name: ""), originalText: "", note: "")
-        ingredients.append(newIngredient)
+        let newIngredient = Ingredient(orderIndex: ingredients.count, name: "", quantity: 0, unit: IngredientUnit(name: "Item"), originalText: "", note: "")
+        selectedIngredient = newIngredient
+        isPresentingSheet = true
     }
+    
+    func editIngredient(_ ingredient: Ingredient) {
+        selectedIngredient = ingredient
+        isPresentingSheet = true
+    }
+    
+    func saveIngredient(_ ingredient: Ingredient) {
+        
+        // Since ingredients are now updated in place, we just need to handle new ingredients
+        if !ingredients.contains(where: { $0.id == ingredient.id }) {
+            // This is a new ingredient, add it
+            ingredients.append(ingredient)
+        }
+        
+        // Update order indices
+        ingredients = ingredients.enumerated().map { (index, ingredient) in
+            var updated = ingredient
+            updated.orderIndex = index
+            return updated
+        }
+        
+        isPresentingSheet = false
+        selectedIngredient = nil
+    }
+    
+    func cancelIngredientEdit() {
+        isPresentingSheet = false
+        selectedIngredient = nil
+    }
+    
     func removeIngredient(at indexSet: IndexSet) {
         ingredients.remove(atOffsets: indexSet)
     }
@@ -376,5 +426,23 @@ class EditRecipeViewModel {
         
         self.slug = name.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: " ", with: "-").lowercased()
         
+    }
+    
+    private func fetchUnits() async {
+        do {
+            self.availableUnits = try await apiService.fetchAllUnits()
+            print("✅ Successfully fetched \(self.availableUnits.count) units.")
+        } catch {
+            self.error = "Failed to load units: \(error.localizedDescription)"
+        }
+    }
+    
+    private func fetchFoods() async {
+        do {
+            self.availableFoods = try await apiService.fetchAllFoods()
+            print("✅ Successfully fetched \(self.availableFoods.count) foods.")
+        } catch {
+            self.error = "Failed to load available foods: \(error.localizedDescription)"
+        }
     }
 }

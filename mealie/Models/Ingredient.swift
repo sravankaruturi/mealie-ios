@@ -140,4 +140,14 @@ final class Ingredient {
             title: apiObject.title
         )
     }
+    
+    // MARK: - Sample Data
+    static let sampleIngredient = Ingredient(
+        orderIndex: 0,
+        name: "Flour",
+        quantity: 2.5,
+        unit: IngredientUnit(name: "cups"),
+        originalText: "2½ cups flour",
+        note: ""
+    )
 }
