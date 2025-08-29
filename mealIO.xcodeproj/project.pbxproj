@@ -31,8 +31,8 @@
 
 /* Begin PBXFileReference section */
 		F638678E2DFE913C00244F38 /* mealIO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mealIO.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F638679D2DFE913D00244F38 /* mealieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F63867A72DFE913D00244F38 /* mealieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F638679D2DFE913D00244F38 /* mealIOTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealIOTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F63867A72DFE913D00244F38 /* mealIOUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealIOUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -114,8 +114,8 @@
 			isa = PBXGroup;
 			children = (
 				F638678E2DFE913C00244F38 /* mealIO.app */,
-				F638679D2DFE913D00244F38 /* mealieTests.xctest */,
-				F63867A72DFE913D00244F38 /* mealieUITests.xctest */,
+				F638679D2DFE913D00244F38 /* mealIOTests.xctest */,
+				F63867A72DFE913D00244F38 /* mealIOUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -150,9 +150,9 @@
 			productReference = F638678E2DFE913C00244F38 /* mealIO.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F638679C2DFE913D00244F38 /* mealieTests */ = {
+		F638679C2DFE913D00244F38 /* mealIOTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieTests" */;
+			buildConfigurationList = F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOTests" */;
 			buildPhases = (
 				F63867992DFE913D00244F38 /* Sources */,
 				F638679A2DFE913D00244F38 /* Frameworks */,
@@ -166,16 +166,16 @@
 			fileSystemSynchronizedGroups = (
 				F63867A02DFE913D00244F38 /* mealieTests */,
 			);
-			name = mealieTests;
+			name = mealIOTests;
 			packageProductDependencies = (
 			);
 			productName = mealieTests;
-			productReference = F638679D2DFE913D00244F38 /* mealieTests.xctest */;
+			productReference = F638679D2DFE913D00244F38 /* mealIOTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		F63867A62DFE913D00244F38 /* mealieUITests */ = {
+		F63867A62DFE913D00244F38 /* mealIOUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieUITests" */;
+			buildConfigurationList = F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOUITests" */;
 			buildPhases = (
 				F63867A32DFE913D00244F38 /* Sources */,
 				F63867A42DFE913D00244F38 /* Frameworks */,
@@ -189,11 +189,11 @@
 			fileSystemSynchronizedGroups = (
 				F63867AA2DFE913D00244F38 /* mealieUITests */,
 			);
-			name = mealieUITests;
+			name = mealIOUITests;
 			packageProductDependencies = (
 			);
 			productName = mealieUITests;
-			productReference = F63867A72DFE913D00244F38 /* mealieUITests.xctest */;
+			productReference = F63867A72DFE913D00244F38 /* mealIOUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -219,7 +219,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealie" */;
+			buildConfigurationList = F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealIO" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -240,8 +240,8 @@
 			projectRoot = "";
 			targets = (
 				F638678D2DFE913C00244F38 /* mealIO */,
-				F638679C2DFE913D00244F38 /* mealieTests */,
-				F63867A62DFE913D00244F38 /* mealieUITests */,
+				F638679C2DFE913D00244F38 /* mealIOTests */,
+				F63867A62DFE913D00244F38 /* mealIOUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -508,7 +508,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealie";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealIO.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealIO";
 			};
 			name = Debug;
 		};
@@ -527,7 +527,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealie";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/mealIO.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/mealIO";
 			};
 			name = Release;
 		};
@@ -568,7 +568,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealie" */ = {
+		F63867892DFE913C00244F38 /* Build configuration list for PBXProject "mealIO" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867AF2DFE913D00244F38 /* Debug */,
@@ -586,7 +586,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieTests" */ = {
+		F63867B42DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867B52DFE913D00244F38 /* Debug */,
@@ -595,7 +595,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealieUITests" */ = {
+		F63867B72DFE913D00244F38 /* Build configuration list for PBXNativeTarget "mealIOUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F63867B82DFE913D00244F38 /* Debug */,
