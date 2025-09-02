@@ -22,7 +22,7 @@ struct LoginBodyView: View {
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            Text("Mealie for iOS")
+            Text("Gourmet for Mealie")
                 .font(.title)
                 .bold()
             VStack(spacing: 16) {
