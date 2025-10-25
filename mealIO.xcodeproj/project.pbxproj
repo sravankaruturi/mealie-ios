@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F61C00282EAD8AF600690E0D /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = F61C00272EAD8AF600690E0D /* Readme.md */; };
 		F63868082DFE967F00244F38 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F63868072DFE967F00244F38 /* Kingfisher */; };
 		F638681A2DFFE94500244F38 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = F63868192DFFE94500244F38 /* OpenAPIRuntime */; };
 		F638681D2DFFE95300244F38 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = F638681C2DFFE95300244F38 /* OpenAPIURLSession */; };
@@ -30,6 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F61C00272EAD8AF600690E0D /* Readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		F638678E2DFE913C00244F38 /* mealIO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = mealIO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F638679D2DFE913D00244F38 /* mealIOTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealIOTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F63867A72DFE913D00244F38 /* mealIOUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mealIOUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +104,7 @@
 		F63867852DFE913C00244F38 = {
 			isa = PBXGroup;
 			children = (
+				F61C00272EAD8AF600690E0D /* Readme.md */,
 				F66AA37A2E486A8C00ABD9D7 /* ci_scripts */,
 				F63867902DFE913C00244F38 /* mealie */,
 				F63867A02DFE913D00244F38 /* mealieTests */,
@@ -251,6 +254,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F61C00282EAD8AF600690E0D /* Readme.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
