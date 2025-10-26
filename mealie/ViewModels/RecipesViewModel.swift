@@ -16,7 +16,6 @@ final class RecipesViewModel {
         self.modelContext = modelContext
         self.apiService = mealieAPIService
         self.recipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
-        AppLogger.logRecipes(self.recipes, context: "RecipesViewModel Initialized")
     }
     
     func testDecoding() {
@@ -168,7 +167,6 @@ final class RecipesViewModel {
     }
     
     private func updateLocalStore(with remoteRecipes: [Recipe]) async {
-        AppLogger.logRecipes(remoteRecipes, context: "updateLocalStore - Remote data received")
         await MainActor.run {
             let localRecipes = self.recipes
             let remoteRecipesDict = Dictionary(uniqueKeysWithValues: remoteRecipes.map { ($0.remoteId, $0) })
@@ -249,7 +247,6 @@ final class RecipesViewModel {
             // Update the view model's recipe list to reflect the latest state
             let finalRecipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
             self.recipes = finalRecipes
-            AppLogger.logRecipes(finalRecipes, context: "updateLocalStore - Local data updated")
             
             self.lastSyncTime = Date()
         }

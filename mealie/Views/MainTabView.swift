@@ -40,7 +40,7 @@ struct MainTabBodyView : View {
                 }
         }
         .onAppear() {
-            AppLogger.logRecipes(recipesViewModel.recipes, context: "MainTabView onAppear")
+//            AppLogger.logRecipes(recipesViewModel.recipes, context: "MainTabView onAppear")
             Task {
                 if self.recipesViewModel.shouldSyncRecipes() {
                     await self.recipesViewModel.syncRecipes()
