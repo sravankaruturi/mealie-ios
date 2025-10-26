@@ -17,8 +17,13 @@ struct PasteboardImportBanner: View {
         }
         .padding()
         .background(.ultraThinMaterial)
-        .cornerRadius(12)
+        .cornerRadius(24)
         .shadow(radius: 4)
         .padding()
     }
 } 
+
+
+#Preview {
+    PasteboardImportBanner(url: URL(filePath: "www.google.com")!, onImport: {}, onDismiss: {})
+}

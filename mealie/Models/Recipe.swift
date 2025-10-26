@@ -3,7 +3,7 @@ import SwiftData
 
 /// This is based on the Recipe Input Schema Component.
 @Model
-final class Recipe {
+final class Recipe: Hashable {
     @Attribute(.unique) var remoteId: String
     var userId: String
     var groupId: String

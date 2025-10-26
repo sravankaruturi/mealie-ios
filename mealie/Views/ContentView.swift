@@ -7,34 +7,22 @@ struct ContentView: View {
     @State private var showPasteboardBanner = false
     @State private var pasteboardURL: URL?
     
+    // Services
     var mealieAPIService: MealieAPIServiceProtocol
     var authState: AuthenticationState
     
     var body: some View {
+        
         ZStack(alignment: .bottom) {
+            
             if authState.isLoggedIn {
                 MainTabView(mealieAPIService: mealieAPIService)
             } else {
                 LoginView()
             }
             
-            VStack(spacing: 0) {
-                if showPasteboardBanner, let url = pasteboardURL {
-                    PasteboardImportBanner(url: url, onImport: {
-                        // Handle import
-                        showPasteboardBanner = false
-                    }, onDismiss: {
-                        showPasteboardBanner = false
-                    })
-                    .transition(.move(edge: .bottom))
-                }
-                
-                if ToastManager.shared.isShowingToast, let toast = ToastManager.shared.currentToast {
-                    toast
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, authState.isLoggedIn ? 83 : 0)
-                }
-            }
+            banners
+            
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             if let string = UIPasteboard.general.string, let url = URL(string: string), url.scheme?.hasPrefix("http") == true {
@@ -46,4 +34,26 @@ struct ContentView: View {
         .environment(ToastManager.shared)
 
     }
-} 
+    
+    /// The banners that show notifications and toast messages.
+    var banners: some View {
+        VStack(spacing: 0) {
+            if showPasteboardBanner, let url = pasteboardURL {
+                PasteboardImportBanner(url: url, onImport: {
+                    // Handle import
+                    showPasteboardBanner = false
+                }, onDismiss: {
+                    showPasteboardBanner = false
+                })
+                .transition(.move(edge: .bottom))
+            }
+            
+            if ToastManager.shared.isShowingToast, let toast = ToastManager.shared.currentToast {
+                toast
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, authState.isLoggedIn ? 83 : 0)
+            }
+        }
+    }
+    
+}
