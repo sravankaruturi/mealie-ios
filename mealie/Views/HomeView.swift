@@ -11,7 +11,6 @@ struct HomeView: View {
     
     var favorites: [Recipe] { recipes.filter { $0.isFavorite } }
     
-    // Use lastMade instead of lastCookedDate, and dateAdded instead of lastModified
     var recentlyViewed: [Recipe] { 
         Array(recipes.sorted { parseAPIDateForSort($0.lastMade) > parseAPIDateForSort($1.lastMade) }.prefix(5)) 
     }
@@ -28,7 +27,7 @@ struct HomeView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(favorites) { recipe in
-                                    NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
+                                    NavigationLink(value: recipe) {
                                         RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
@@ -44,7 +43,7 @@ struct HomeView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(recentlyViewed) { recipe in
-                                    NavigationLink(destination: RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)) {
+                                    NavigationLink(value: recipe) {
                                         RecipeCardView(recipe: recipe, mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
@@ -61,14 +60,14 @@ struct HomeView: View {
                         Grid(horizontalSpacing: 10, verticalSpacing: 10) {
                             ForEach(Array(stride(from: 0, to: recentlyAdded.count, by: 2)), id: \.self) { index in
                                 GridRow{
-                                    NavigationLink(destination: RecipeDetailView(recipe: recentlyAdded[index], mealieAPIService: self.mealieAPIService)) {
+                                    NavigationLink(value: recentlyAdded[index]) {
                                         RecipeCardView(recipe: recentlyAdded[index], mealieAPIService: self.mealieAPIService)
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                     .frame(width: 180, height: 140)
                                     
                                     if index + 1 < recentlyAdded.count {
-                                        NavigationLink(destination: RecipeDetailView(recipe: recentlyAdded[index + 1], mealieAPIService: self.mealieAPIService)) {
+                                        NavigationLink(value: recentlyAdded[index + 1]) {
                                             RecipeCardView(recipe: recentlyAdded[index + 1], mealieAPIService: self.mealieAPIService)
                                         }
                                         .buttonStyle(PlainButtonStyle())
@@ -85,7 +84,6 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear {
-                AppLogger.logRecipes(Array(recipes), context: "HomeView onAppear")
                 print("🏠 HomeView appeared with \(recipes.count) recipes, hasSyncedFavorites: \(hasSyncedFavorites)")
                 // Sync favorites from server on first load
                 if !hasSyncedFavorites && !recipes.isEmpty {
@@ -104,7 +102,6 @@ struct HomeView: View {
                 }
             }
             .onChange(of: recipes.count) { oldCount, newCount in
-                AppLogger.logRecipes(Array(recipes), context: "HomeView onChange")
                 print("📊 Recipes count changed from \(oldCount) to \(newCount)")
                 // If recipes were loaded and we haven't synced favorites yet, do it now
                 if newCount > 0 && !hasSyncedFavorites {
@@ -113,6 +110,9 @@ struct HomeView: View {
                         await syncFavoritesFromServer()
                     }
                 }
+            }
+            .navigationDestination(for: Recipe.self) { recipe in
+                RecipeDetailView(recipe: recipe, mealieAPIService: self.mealieAPIService)
             }
         }
     }

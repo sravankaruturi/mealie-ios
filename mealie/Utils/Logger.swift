@@ -1,6 +1,8 @@
 import Foundation
 
 struct AppLogger {
+    
+    #if DEBUG
     static func logRecipes(_ recipes: [Recipe], context: String) {
         print("📋 LOG: \(context)")
         print("    Total Recipes: \(recipes.count)")
@@ -9,6 +11,7 @@ struct AppLogger {
         }
         print("----------------------------------")
     }
+    #endif
     
     static func warning(_ message: String) {
         print("⚠️ WARNING: \(message)")

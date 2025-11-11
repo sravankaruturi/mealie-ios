@@ -11,7 +11,9 @@ struct RecipeDetailView: View {
     
     var body: some View {
         ScrollView {
+            
             VStack(alignment: .leading, spacing: 16) {
+                
                 if let urlString = recipe.image, let url = URL(string: urlString) {
                     AsyncImage(url: url) { image in
                         image.resizable()
@@ -23,9 +25,11 @@ struct RecipeDetailView: View {
                     .clipped()
                     .cornerRadius(12)
                 }
+                
                 Text(recipe.name ?? "Untitled Recipe")
                     .font(.largeTitle)
                     .bold()
+                
                 // NOTE: The Mealie web interface uses 'performTime' to display what is conceptually the "Cook Time".
                 // We are matching that behavior here instead of using the 'cookTime' field.
                 HStack(spacing: 16) {

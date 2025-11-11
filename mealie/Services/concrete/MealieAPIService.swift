@@ -18,8 +18,6 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         
         if serverURL != nil {
             setURL(serverURL!)
-        }else {
-            print("Server URL is Null")
         }
 
     }

@@ -34,17 +34,13 @@ struct MainTabBodyView : View {
                 .tabItem {
                     Label("Recipes", systemImage: "book")
                 }
-//            MealPlanView()
-//                .tabItem {
-//                    Label("Calendar", systemImage: "calendar")
-//                }
             ProfileView(recipesViewModel: recipesViewModel, mealieAPIService: self.mealieAPIService)
                 .tabItem {
                     Label("Profile", systemImage: "person")
                 }
         }
         .onAppear() {
-            AppLogger.logRecipes(recipesViewModel.recipes, context: "MainTabView onAppear")
+//            AppLogger.logRecipes(recipesViewModel.recipes, context: "MainTabView onAppear")
             Task {
                 if self.recipesViewModel.shouldSyncRecipes() {
                     await self.recipesViewModel.syncRecipes()
