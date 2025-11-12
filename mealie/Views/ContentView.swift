@@ -18,7 +18,7 @@ struct ContentView: View {
             switch authState.status {
             case .unknown:
                 LoadingView()
-            case .authenticated(let user):
+            case .authenticated:
                 MainTabView(mealieAPIService: mealieAPIService)
             case .unauthenticated:
                 LoginView()

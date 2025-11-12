@@ -14,10 +14,9 @@ struct LoadingView : View {
         VStack {
             
             ProgressView()
-                .progressViewStyle(.linear)
             
             Text("Loading...")
-                .font(.largeTitle)
+                .font(.title2)
                 .foregroundColor(.primary)
         }
     }
