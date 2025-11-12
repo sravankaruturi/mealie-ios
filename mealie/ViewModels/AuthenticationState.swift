@@ -25,15 +25,6 @@ final class AuthenticationState {
     var status: AuthStatus = .unknown
     var isLoading: Bool = false
 
-    var isLoggedIn: Bool {
-        switch status {
-            case .authenticated:
-            return true
-        default:
-            return false
-        }
-    }
-
     var user: User? {
         switch status {
         case .authenticated(let user):

@@ -15,10 +15,15 @@ struct ContentView: View {
         
         ZStack(alignment: .bottom) {
             
-            if authState.isLoggedIn {
+            switch authState.status {
+            case .unknown:
+                LoadingView()
+            case .authenticated(let user):
                 MainTabView(mealieAPIService: mealieAPIService)
-            } else {
+            case .unauthenticated:
                 LoginView()
+            case .loading:
+                LoadingView()
             }
             
             banners
@@ -51,7 +56,7 @@ struct ContentView: View {
             if ToastManager.shared.isShowingToast, let toast = ToastManager.shared.currentToast {
                 toast
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding(.bottom, authState.isLoggedIn ? 83 : 0)
+//                    .padding(.bottom, authState.isLoggedIn ? 83 : 0)
             }
         }
     }
