@@ -1,10 +1,20 @@
 import Foundation
 
+/// Date Parse Class to help us with parsing the date we receive from elsewhere
+
 // A reusable formatter for ISO8601 dates, configured to handle fractional seconds.
 // This is more efficient than creating a new formatter on each call.
 private let isoFormatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+}()
+
+// Some API responses omit fractional seconds entirely. Keep a second formatter so we
+// can parse those values without recreating formatters on each call.
+private let isoFormatterNoFractional: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime]
     return formatter
 }()
 
@@ -15,6 +25,11 @@ func parseAPIDate(_ dateString: String?) -> Date? {
     // Try the robust ISO8601 formatter first.
     // It's configured to handle timestamps with fractional seconds and various timezone formats.
     if let date = isoFormatter.date(from: dateString) {
+        return date
+    }
+    
+    // Some endpoints omit fractional seconds; fall back to a formatter that allows that format.
+    if let date = isoFormatterNoFractional.date(from: dateString) {
         return date
     }
     

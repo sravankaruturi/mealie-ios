@@ -1,13 +1,12 @@
 import SwiftUI
 
 struct PasteboardImportBanner: View {
-    let url: URL
     let onImport: () -> Void
     let onDismiss: () -> Void
     
     var body: some View {
         HStack {
-            Text("Import recipe from \(url.host ?? url.absoluteString)?")
+            Text("Import recipe link detected on your clipboard.")
                 .font(.subheadline)
             Spacer()
             Button("Import", action: onImport)
@@ -25,5 +24,5 @@ struct PasteboardImportBanner: View {
 
 
 #Preview {
-    PasteboardImportBanner(url: URL(filePath: "www.google.com")!, onImport: {}, onDismiss: {})
+    PasteboardImportBanner(onImport: {}, onDismiss: {})
 }
