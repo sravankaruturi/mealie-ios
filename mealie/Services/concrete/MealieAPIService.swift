@@ -12,12 +12,12 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     var client: Client?
     
     init(serverURL: URL?) {
-        
+
         let config = URLSessionConfiguration.default
         self.session = URLSession(configuration: config)
-        
-        if serverURL != nil {
-            setURL(serverURL!)
+
+        if let url = serverURL {
+            setURL(url)
         }
 
     }
@@ -44,23 +44,31 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             body: .urlEncodedForm(requestBody)
             )
         
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
+        }
+
+        guard let serverURL = serverURL else {
+            throw MealieAPIError.invalidURL
+        }
+
         do {
-            let output = try await client!.get_token_api_auth_token_post(input)
-            
+            let output = try await client.get_token_api_auth_token_post(input)
+
             switch output {
-                
+
             case .ok(let response):
                 let jsonResponse = try response.body.json
-                
+
                 guard let token = jsonResponse.access_token else {
                     throw MealieAPIError.custom("No access_token in response.")
                 }
-                
-                let savedToKeyChain = KeychainService.shared.saveToken(token, serverURL: self.serverURL!)
+
+                let savedToKeyChain = KeychainService.shared.saveToken(token, serverURL: serverURL)
                 if !savedToKeyChain {
                     AppLogger.warning("Unable to Save Token to Keychain")
                 }
-                
+
                 return token
                 
             case .unprocessableContent(let response):
@@ -104,9 +112,13 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     
     // MARK: - Recipes
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
-        
+
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
+        }
+
         let input = Operations.get_all_api_recipes_get.Input(query: .init() )
-        let output = try await self.client!.get_all_api_recipes_get(input)
+        let output = try await client.get_all_api_recipes_get(input)
         
         switch output {
         case .ok(let response):
@@ -136,9 +148,13 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     
     /// Optimized recipe fetching that only downloads full details for updated recipes
     func fetchAllRecipesOptimized(existingRecipes: [Recipe], page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
-        
+
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
+        }
+
         let input = Operations.get_all_api_recipes_get.Input(query: .init() )
-        let output = try await self.client!.get_all_api_recipes_get(input)
+        let output = try await client.get_all_api_recipes_get(input)
         
         switch output {
         case .ok(let response):
@@ -239,8 +255,12 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     
     func fetchRecipeDetails(slug: String) async throws -> Recipe {
         // GET /api/recipes/{recipe_slug}
+        guard let client = client else {
+            throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
+        }
+
         let input = Operations.get_one_api_recipes__slug__get.Input(path: .init(slug: slug))
-        let output = try await client!.get_one_api_recipes__slug__get(input)
+        let output = try await client.get_one_api_recipes__slug__get(input)
         
         switch output {
         case .ok(let response):
