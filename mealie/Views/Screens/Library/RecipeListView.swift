@@ -160,7 +160,12 @@ struct RecipeListView: View {
                     await MainActor.run {
                         // Add to local storage and navigate
                         modelContext.insert(fetchedRecipe)
-                        try? modelContext.save()
+                        do {
+                            try modelContext.save()
+                        } catch {
+                            print("Failed to save fetched recipe locally: \(error)")
+                            ToastManager.shared.showWarning("Recipe loaded but couldn't be saved locally")
+                        }
                         recipesViewModel.recipes.append(fetchedRecipe)
                         selectedRecipe = fetchedRecipe
                     }
