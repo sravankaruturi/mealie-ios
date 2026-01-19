@@ -6,23 +6,23 @@ A comprehensive list of planned improvements and features for the app.
 
 ## High Priority - Stability & Security
 
-- [ ] **H1: Fix Silent Failures** - Replace `try?` with proper error handling to prevent data loss without user awareness
+- [x] **H1: Fix Silent Failures** - Replace `try?` with proper error handling to prevent data loss without user awareness
   - `RecipeCardView.swift` (lines 90, 123)
   - `RecipeListView.swift` (line 163)
   - `EditRecipeViewModel.swift` (line 327)
 
-- [ ] **H2: Remove Force Unwraps** - Replace `!` with safe optional handling to prevent crashes
+- [x] **H2: Remove Force Unwraps** - Replace `!` with safe optional handling to prevent crashes
   - `MealieAPIService.swift` (lines 48, 59, 109)
   - `RecipeListView.swift` (line 179)
 
-- [ ] **H3: Secure Server URL Storage** - Move server URL from UserDefaults to Keychain (currently stored unencrypted)
+- [x] **H3: Secure Server URL Storage** - Move server URL from UserDefaults to Keychain (currently stored unencrypted)
   - `KeychainService.swift`
 
-- [ ] **H4: Token Refresh Logic** - Handle expired tokens gracefully instead of forcing logout
-  - `AuthenticationService.swift`
+- [x] **H4: Token Refresh Logic** - Handle expired tokens gracefully instead of forcing logout
+  - `AuthenticationMiddleware` - detects 401 and posts notification
+  - `AuthenticationState.swift` - handles session expiration
 
-- [ ] **H5: Add Logout Confirmation** - Prevent accidental logouts with a confirmation dialog
-  - `AuthenticationState.swift`
+- [x] **H5: Add Logout Confirmation** - Prevent accidental logouts with a confirmation dialog
   - `ProfileView.swift`
 
 ---
