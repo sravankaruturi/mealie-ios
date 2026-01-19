@@ -23,6 +23,13 @@ struct ContentView: View {
                 LoginView()
             case .loading:
                 LoadingView()
+            case .sessionExpired:
+                // Show login view - the toast already notified the user
+                LoginView()
+                    .onAppear {
+                        // Clear the expired state after showing login
+                        authState.clearSessionExpiredState()
+                    }
             }
             
             banners
