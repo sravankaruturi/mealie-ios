@@ -124,44 +124,17 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     }
     
     // MARK: - Recipes
-    /// Fetches all recipe summaries then downloads full details for each (N+1 calls).
+
+    /// Fetches all recipes with full details - makes N+1 API calls (1 for list + N for details).
+    /// - Note: Prefer `fetchAllRecipesOptimized(existingRecipes:)` which only fetches changed recipes.
     /// - Parameters:
     ///   - page: The page number to fetch (default 1).
     ///   - perPage: The number of recipes per page (default 50).
     /// - Returns: An array of fully-detailed `Recipe` objects.
+    @available(*, deprecated, message: "Use fetchAllRecipesOptimized(existingRecipes:) instead to avoid N+1 query problem")
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
-
-        guard let client = client else {
-            throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
-        }
-
-        let input = Operations.get_all_api_recipes_get.Input(query: .init() )
-        let output = try await client.get_all_api_recipes_get(input)
-        
-        switch output {
-        case .ok(let response):
-            
-            let paginationResponse = try response.body.json
-            
-            let recipeSummaries = paginationResponse.items
-            
-            var recipes: [Recipe] = []
-            
-            for recipeSummary in recipeSummaries {
-                
-                guard let slug = recipeSummary.slug else { continue }
-                
-                let recipe = try await fetchRecipeDetails(slug: slug)
-                recipes.append(recipe)
-                
-            }
-            
-            
-            return recipes
-        default:
-            throw MealieAPIError.custom("Failed to fetch recipes.")
-        }
-        
+        // Delegate to optimized version with empty array (fetches all as "new")
+        return try await fetchAllRecipesOptimized(existingRecipes: [])
     }
     
     /// Smart sync: only downloads details for new or updated recipes.

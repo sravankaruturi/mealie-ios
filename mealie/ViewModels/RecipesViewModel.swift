@@ -285,8 +285,9 @@ final class RecipesViewModel {
         error = nil
         defer { isSyncing = false }
         do {
-            // Fetch all recipes without optimization
-            let remoteRecipes = try await apiService.fetchAllRecipes()
+            // Force fetch all recipes by passing empty array (treats all as "new")
+            // This ensures we get fresh data from server while using the optimized code path
+            let remoteRecipes = try await apiService.fetchAllRecipesOptimized(existingRecipes: [])
             await updateLocalStore(with: remoteRecipes)
 
         } catch {
