@@ -214,41 +214,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.custom("Failed to fetch recipes.")
         }
     }
-    
-    /// Helper method to parse date strings from the API
-    private func parseDateString(_ dateString: String?) -> Date? {
-        guard let dateString = dateString else { return nil }
-        
-        // Try ISO8601 format first (most common for API timestamps)
-        if let date = ISO8601DateFormatter().date(from: dateString) {
-            return date
-        }
-        
-        // Try date-only format (YYYY-MM-DD)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        if let date = dateFormatter.date(from: dateString) {
-            return date
-        }
-        
-        return nil
-    }
-    
-    /// Helper method to normalize timestamps for comparison
-    private func normalizeTimestamp(_ timestamp: String) -> String {
-        // If empty, return as is
-        guard !timestamp.isEmpty else { return timestamp }
-        
-        // Try to parse as ISO8601 and reformat consistently
-        if let date = ISO8601DateFormatter().date(from: timestamp) {
-            let formatter = ISO8601DateFormatter()
-            return formatter.string(from: date)
-        }
-        
-        // If we can't parse it, return the original string
-        return timestamp
-    }
-    
+
     /// Fetches full recipe details for a single recipe by slug.
     /// - Parameter slug: The recipe's URL slug identifier.
     /// - Returns: A fully-detailed `Recipe` object.
