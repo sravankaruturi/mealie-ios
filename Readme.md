@@ -44,7 +44,3 @@ Built with modern Apple frameworks:
 3. Build and run on simulator or device
 
 See [Roadmap.md](Roadmap.md) for planned improvements and contribution opportunities.
-
-## License
-
-This project is open source. See the LICENSE file for details.
