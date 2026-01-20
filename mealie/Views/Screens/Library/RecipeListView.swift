@@ -160,7 +160,12 @@ struct RecipeListView: View {
                     await MainActor.run {
                         // Add to local storage and navigate
                         modelContext.insert(fetchedRecipe)
-                        try? modelContext.save()
+                        do {
+                            try modelContext.save()
+                        } catch {
+                            print("Failed to save fetched recipe locally: \(error)")
+                            ToastManager.shared.showWarning("Recipe loaded but couldn't be saved locally")
+                        }
                         recipesViewModel.recipes.append(fetchedRecipe)
                         selectedRecipe = fetchedRecipe
                     }
@@ -173,24 +178,28 @@ struct RecipeListView: View {
 }
 
 #Preview {
-    
+
     let mockService = MockMealieAPIService()
-    
-    let modelContainer = try! ModelContainer(for: Recipe.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    
-    // Insert sample recipe into the model context
-    modelContainer.mainContext.insert(MockMealieAPIService.sampleRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.favoriteRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.thirdRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.fourthRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.fifthRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.sixthRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.seventhRecipe)
-    modelContainer.mainContext.insert(MockMealieAPIService.eightRecipe)
-    
-    // Create the view model with the model context
-    let recipesViewModel = RecipesViewModel(modelContext: modelContainer.mainContext, mealieAPIService: mockService)
-    
-    return RecipeListView(mealieAPIService: mockService, recipesViewModel: recipesViewModel)
-        .modelContainer(modelContainer)
+
+    do {
+        let modelContainer = try ModelContainer(for: Recipe.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+
+        // Insert sample recipe into the model context
+        modelContainer.mainContext.insert(MockMealieAPIService.sampleRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.favoriteRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.thirdRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.fourthRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.fifthRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.sixthRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.seventhRecipe)
+        modelContainer.mainContext.insert(MockMealieAPIService.eightRecipe)
+
+        // Create the view model with the model context
+        let recipesViewModel = RecipesViewModel(modelContext: modelContainer.mainContext, mealieAPIService: mockService)
+
+        return RecipeListView(mealieAPIService: mockService, recipesViewModel: recipesViewModel)
+            .modelContainer(modelContainer)
+    } catch {
+        return Text("Failed to create preview: \(error.localizedDescription)")
+    }
 }

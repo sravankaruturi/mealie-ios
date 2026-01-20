@@ -87,7 +87,12 @@ struct RecipeCardView: View {
             // Still toggle locally even if server sync fails
             await MainActor.run {
                 recipe.toggleFavorite()
-                try? modelContext.save()
+                do {
+                    try modelContext.save()
+                } catch {
+                    print("Failed to save favorite toggle locally: \(error)")
+                    ToastManager.shared.showError("Failed to save changes locally")
+                }
             }
             return
         }
@@ -98,7 +103,12 @@ struct RecipeCardView: View {
         // Optimistic update - update UI immediately on main actor
         await MainActor.run {
             recipe.toggleFavorite()
-            try? modelContext.save()
+            do {
+                try modelContext.save()
+            } catch {
+                print("Failed to save optimistic favorite update: \(error)")
+                // Continue anyway - the server sync will be the source of truth
+            }
         }
         
         isTogglingFavorite = true
@@ -117,14 +127,17 @@ struct RecipeCardView: View {
         } catch {
             print("Failed to sync favorite with server: \(error)")
             
-            // Revert the optimistic update on failure - ensure this happens on main actor
+            // Revert the optimistic update on failure and show toast - ensure this happens on main actor
             await MainActor.run {
                 recipe.isFavorite = originalFavoriteState
-                try? modelContext.save()
+                do {
+                    try modelContext.save()
+                } catch {
+                    print("Failed to revert favorite state: \(error)")
+                }
+                // Show user feedback via toast (must be on MainActor)
+                ToastManager.shared.showError("Failed to sync favorite with server")
             }
-            
-            // You could show user feedback here (toast, alert, etc.)
-            // For now, we'll just print the error
         }
         
         isTogglingFavorite = false

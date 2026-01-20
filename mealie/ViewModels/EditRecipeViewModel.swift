@@ -324,10 +324,16 @@ class EditRecipeViewModel {
                 updated.step = index + 1
                 return updated
             }
-            try? modelContext.save()
-            showSuccess = true
+
+            do {
+                try modelContext.save()
+                showSuccess = true
+                print("🔧 EditRecipeViewModel: Recipe update completed successfully")
+            } catch {
+                print("❌ EditRecipeViewModel: Failed to save recipe locally: \(error)")
+                self.error = "Recipe updated on server but failed to save locally: \(error.localizedDescription)"
+            }
             isLoading = false
-            print("🔧 EditRecipeViewModel: Recipe update completed successfully")
         } catch {
             print("❌ EditRecipeViewModel: Error updating recipe: \(error)")
             print("❌ EditRecipeViewModel: Error type: \(type(of: error))")

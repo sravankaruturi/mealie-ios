@@ -3,11 +3,46 @@ import Security
 
 final class KeychainService {
     static let shared = KeychainService()
-    private let service = "mealie.api.token"
-    private let serverURLKey = "mealie.server.url"
-    
-    private init() {}
-    
+
+    // Keychain service identifiers
+    private let tokenService = "mealie.api.token"
+    private let serverURLService = "mealie.server.url"
+
+    // Legacy UserDefaults key (for migration)
+    private let legacyServerURLKey = "mealie.server.url"
+
+    private init() {
+        // Migrate server URL from UserDefaults to Keychain if needed
+        migrateServerURLToKeychain()
+    }
+
+    // MARK: - Migration
+
+    /// Migrates server URL from UserDefaults to Keychain (one-time migration)
+    private func migrateServerURLToKeychain() {
+        // Check if there's a URL in UserDefaults that needs migration
+        if let legacyURLString = UserDefaults.standard.string(forKey: legacyServerURLKey),
+           let legacyURL = URL(string: legacyURLString) {
+            // Only migrate if Keychain doesn't already have a URL
+            if getServerURL() == nil {
+                let saveSucceeded = saveServerURL(legacyURL)
+                if saveSucceeded {
+                    print("🔐 Migrated server URL from UserDefaults to Keychain")
+                    // Only remove from UserDefaults after successful migration
+                    UserDefaults.standard.removeObject(forKey: legacyServerURLKey)
+                } else {
+                    // Keep the legacy entry if migration failed to avoid data loss
+                    print("⚠️ Failed to migrate server URL to Keychain - keeping UserDefaults entry")
+                }
+            } else {
+                // Keychain already has a URL, safe to remove legacy entry
+                UserDefaults.standard.removeObject(forKey: legacyServerURLKey)
+            }
+        }
+    }
+
+    // MARK: - Token Storage
+
     /// Saves the token into the Keychain. Returns True if it's successful
     /// - Parameters:
     ///     - token: Token to Authenticate this with.
@@ -17,22 +52,22 @@ final class KeychainService {
         guard let data = token.data(using: .utf8) else { return false }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: tokenService,
             kSecValueData as String: data
         ]
         SecItemDelete(query as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
-        
-        // Save server URL
-        UserDefaults.standard.set(serverURL.absoluteString, forKey: serverURLKey)
-        
-        return status == errSecSuccess
+        let tokenStatus = SecItemAdd(query as CFDictionary, nil)
+
+        // Save server URL to Keychain (secure storage)
+        let urlSaved = saveServerURL(serverURL)
+
+        return tokenStatus == errSecSuccess && urlSaved
     }
-    
+
     func getToken() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
+            kSecAttrService as String: tokenService,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -41,18 +76,61 @@ final class KeychainService {
         guard status == errSecSuccess, let data = dataTypeRef as? Data else { return nil }
         return String(data: data, encoding: .utf8)
     }
-    
-    func getServerURL() -> URL? {
-        guard let urlString = UserDefaults.standard.string(forKey: serverURLKey) else { return nil }
-        return URL(string: urlString)
-    }
-    
-    func deleteToken() {
+
+    // MARK: - Server URL Storage (Secure)
+
+    /// Saves the server URL into the Keychain
+    /// - Parameter url: The server URL to save
+    /// - Returns: True if save is successful, false otherwise
+    @discardableResult
+    func saveServerURL(_ url: URL) -> Bool {
+        guard let data = url.absoluteString.data(using: .utf8) else { return false }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service
+            kSecAttrService as String: serverURLService,
+            kSecValueData as String: data
         ]
+        // Delete existing entry first
         SecItemDelete(query as CFDictionary)
-        UserDefaults.standard.removeObject(forKey: serverURLKey)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        return status == errSecSuccess
+    }
+
+    func getServerURL() -> URL? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serverURLService,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var dataTypeRef: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+        guard status == errSecSuccess,
+              let data = dataTypeRef as? Data,
+              let urlString = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return URL(string: urlString)
+    }
+
+    // MARK: - Deletion
+
+    func deleteToken() {
+        // Delete token from Keychain
+        let tokenQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: tokenService
+        ]
+        SecItemDelete(tokenQuery as CFDictionary)
+
+        // Delete server URL from Keychain
+        let urlQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serverURLService
+        ]
+        SecItemDelete(urlQuery as CFDictionary)
+
+        // Clean up any legacy UserDefaults entries
+        UserDefaults.standard.removeObject(forKey: legacyServerURLKey)
     }
 } 

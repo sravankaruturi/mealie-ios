@@ -3,12 +3,13 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AuthenticationState.self) private var authState
     let recipesViewModel: RecipesViewModel
-    
+
     var mealieAPIService: MealieAPIServiceProtocol
-    
+
     @State private var currentUser: Components.Schemas.UserOut?
     @State private var isLoadingUser = false
     @State private var userError: String?
+    @State private var showLogoutConfirmation = false
     
     var body: some View {
         NavigationStack {
@@ -156,7 +157,7 @@ struct ProfileView: View {
                     
                     // Logout Button
                     Button(action: {
-                        authState.logout()
+                        showLogoutConfirmation = true
                     }) {
                         HStack {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -178,6 +179,17 @@ struct ProfileView: View {
             }
             .refreshable {
                 await loadUserInfo()
+            }
+            .alert(
+                "Are you sure you want to logout?",
+                isPresented: $showLogoutConfirmation
+            ) {
+                Button("Cancel", role: .cancel) { }
+                Button("Logout", role: .destructive) {
+                    authState.logout()
+                }
+            } message: {
+                Text("You will need to enter your credentials again to access your recipes.")
             }
         }
     }

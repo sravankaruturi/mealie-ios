@@ -10,20 +10,39 @@ import Observation
 @Observable
 final class AuthenticationState {
 
-    enum AuthStatus {
+    enum AuthStatus: Equatable {
         case unknown
         case authenticated(User)
         case unauthenticated
         case loading
+        case sessionExpired  // New state for expired sessions
+
+        static func == (lhs: AuthStatus, rhs: AuthStatus) -> Bool {
+            switch (lhs, rhs) {
+            case (.unknown, .unknown),
+                 (.unauthenticated, .unauthenticated),
+                 (.loading, .loading),
+                 (.sessionExpired, .sessionExpired):
+                return true
+            case (.authenticated(let lhsUser), .authenticated(let rhsUser)):
+                return lhsUser.id == rhsUser.id
+            default:
+                return false
+            }
+        }
     }
-    
-    
-    
+
     private let keychainService: KeychainService
     private let authService: AuthenticationServiceProtocol
-    
+
+    /// Token for the session expiration observer - must be stored to properly remove observer
+    private var sessionExpiredObserverToken: NSObjectProtocol?
+
     var status: AuthStatus = .unknown
     var isLoading: Bool = false
+
+    /// Message to display when session expires
+    var sessionExpiredMessage: String?
 
     var user: User? {
         switch status {
@@ -35,12 +54,58 @@ final class AuthenticationState {
     }
 
     init(keychainService: KeychainService = .shared, authService: AuthenticationServiceProtocol) {
-        
+
         self.keychainService = keychainService
         self.authService = authService
 
+        // Listen for session expiration notifications
+        // Store the token to properly remove the observer in deinit
+        sessionExpiredObserverToken = NotificationCenter.default.addObserver(
+            forName: .sessionExpired,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleSessionExpired()
+        }
+
         Task {
             await self.checkForExistingAuth()
+        }
+    }
+
+    deinit {
+        if let token = sessionExpiredObserverToken {
+            NotificationCenter.default.removeObserver(token)
+        }
+    }
+
+    // MARK: - Session Expiration Handling
+
+    /// Called when the API returns a 401 Unauthorized response
+    @MainActor
+    private func handleSessionExpired() {
+        // Only handle if currently authenticated (avoid duplicate handling)
+        guard case .authenticated = status else { return }
+
+        print("🚫 AuthenticationState: Session expired, logging out user")
+
+        // Clear credentials
+        keychainService.deleteToken()
+
+        // Update state to show session expired
+        status = .sessionExpired
+        sessionExpiredMessage = "Your session has expired. Please log in again."
+
+        // Show toast notification
+        ToastManager.shared.showWarning("Session expired. Please log in again.")
+    }
+
+    /// Clears the session expired message (call this after user acknowledges)
+    @MainActor
+    func clearSessionExpiredState() {
+        if status == .sessionExpired {
+            status = .unauthenticated
+            sessionExpiredMessage = nil
         }
     }
 
