@@ -35,6 +35,9 @@ final class AuthenticationState {
     private let keychainService: KeychainService
     private let authService: AuthenticationServiceProtocol
 
+    /// Token for the session expiration observer - must be stored to properly remove observer
+    private var sessionExpiredObserverToken: NSObjectProtocol?
+
     var status: AuthStatus = .unknown
     var isLoading: Bool = false
 
@@ -56,7 +59,8 @@ final class AuthenticationState {
         self.authService = authService
 
         // Listen for session expiration notifications
-        NotificationCenter.default.addObserver(
+        // Store the token to properly remove the observer in deinit
+        sessionExpiredObserverToken = NotificationCenter.default.addObserver(
             forName: .sessionExpired,
             object: nil,
             queue: .main
@@ -70,7 +74,9 @@ final class AuthenticationState {
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        if let token = sessionExpiredObserverToken {
+            NotificationCenter.default.removeObserver(token)
+        }
     }
 
     // MARK: - Session Expiration Handling

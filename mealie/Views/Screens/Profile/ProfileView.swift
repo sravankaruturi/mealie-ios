@@ -180,15 +180,14 @@ struct ProfileView: View {
             .refreshable {
                 await loadUserInfo()
             }
-            .confirmationDialog(
+            .alert(
                 "Are you sure you want to logout?",
-                isPresented: $showLogoutConfirmation,
-                titleVisibility: .visible
+                isPresented: $showLogoutConfirmation
             ) {
+                Button("Cancel", role: .cancel) { }
                 Button("Logout", role: .destructive) {
                     authState.logout()
                 }
-                Button("Cancel", role: .cancel) { }
             } message: {
                 Text("You will need to enter your credentials again to access your recipes.")
             }

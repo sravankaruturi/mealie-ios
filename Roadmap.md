@@ -143,4 +143,4 @@ A comprehensive list of planned improvements and features for the app.
 
 ---
 
-*Last updated: January 2026*
+Last updated: January 2026

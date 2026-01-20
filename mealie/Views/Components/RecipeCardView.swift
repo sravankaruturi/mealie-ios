@@ -127,7 +127,7 @@ struct RecipeCardView: View {
         } catch {
             print("Failed to sync favorite with server: \(error)")
             
-            // Revert the optimistic update on failure - ensure this happens on main actor
+            // Revert the optimistic update on failure and show toast - ensure this happens on main actor
             await MainActor.run {
                 recipe.isFavorite = originalFavoriteState
                 do {
@@ -135,10 +135,9 @@ struct RecipeCardView: View {
                 } catch {
                     print("Failed to revert favorite state: \(error)")
                 }
+                // Show user feedback via toast (must be on MainActor)
+                ToastManager.shared.showError("Failed to sync favorite with server")
             }
-
-            // Show user feedback via toast
-            ToastManager.shared.showError("Failed to sync favorite with server")
         }
         
         isTogglingFavorite = false

@@ -30,9 +30,11 @@ struct AuthenticationMiddleware: ClientMiddleware {
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
 
         var request = request
+        var didAttachToken = false
 
         if let accessToken = KeychainService.shared.getToken() {
             request.headerFields[values: .authorization] = .init(["Bearer \(accessToken)"])
+            didAttachToken = true
             print("🔐 AuthenticationMiddleware: Added Bearer token for operation: \(operationID)")
         } else {
             print("⚠️ AuthenticationMiddleware: No access token found for operation: \(operationID)")
@@ -40,9 +42,10 @@ struct AuthenticationMiddleware: ClientMiddleware {
 
         let (response, responseBody) = try await next(request, body, baseURL)
 
-        // Check for 401 Unauthorized - indicates session/token has expired
-        if response.status.code == 401 {
-            print("🚫 AuthenticationMiddleware: Received 401 Unauthorized for operation: \(operationID)")
+        // Check for 401 Unauthorized - only trigger session expired if we actually sent a token
+        // This prevents login failures (wrong password) from triggering session expiration
+        if response.status.code == 401 && didAttachToken {
+            print("🚫 AuthenticationMiddleware: Received 401 Unauthorized for operation: \(operationID) - session expired")
             // Post notification on main thread so UI can respond
             await MainActor.run {
                 NotificationCenter.default.post(name: .sessionExpired, object: nil)
