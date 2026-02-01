@@ -43,7 +43,7 @@ struct RecipeImageView: View {
                     .foregroundColor(.gray)
             }
             .onFailure { error in
-                print("Failed to load recipe image: \(error)")
+                AppLogger.error(.general, "Failed to load recipe image: \(error)")
             }
             .cacheMemoryOnly(false) // Cache to disk for better performance
             .fade(duration: 0.3) // Smooth fade-in animation

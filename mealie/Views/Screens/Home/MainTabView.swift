@@ -45,7 +45,7 @@ struct MainTabBodyView : View {
                 if self.recipesViewModel.shouldSyncRecipes() {
                     await self.recipesViewModel.syncRecipes()
                 } else {
-                    print("📱 Skipping recipe sync - last sync was recent")
+                    AppLogger.debug(.sync, "Skipping recipe sync - last sync was recent")
                 }
             }
         }

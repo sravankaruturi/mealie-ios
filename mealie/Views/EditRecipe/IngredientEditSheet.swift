@@ -179,10 +179,10 @@ extension View {
         ingredient: .constant(Ingredient.sampleIngredient),
         availableUnits: [],
         onSave: { updated in
-            print("Saved ingredient: \(updated.name)")
+            AppLogger.debug(.recipes, "Saved ingredient: \(updated.name)")
         },
         onCancel: {
-            print("Cancelled editing")
+            AppLogger.debug(.recipes, "Cancelled editing")
         }
     )
 }

@@ -31,7 +31,7 @@ struct mealieApp: App {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             // If migration fails, try to delete the app data and recreate
-            print("Failed to create ModelContainer: \(error)")
+            AppLogger.error(.general, "Failed to create ModelContainer: \(error)")
             
             // Try to delete the app's data directory to clear corrupted data
             do {
@@ -40,18 +40,18 @@ struct mealieApp: App {
                 
                 if let documentsPath = documentsPath {
                     try? FileManager.default.removeItem(at: documentsPath)
-                    print("Deleted documents directory")
+                    AppLogger.warning(.general, "Deleted documents directory")
                 }
                 
                 if let libraryPath = libraryPath {
                     try? FileManager.default.removeItem(at: libraryPath)
-                    print("Deleted library directory")
+                    AppLogger.warning(.general, "Deleted library directory")
                 }
                 
                 // Try to create the container again
                 return try ModelContainer(for: schema, configurations: [modelConfiguration])
             } catch {
-                print("Failed to recreate ModelContainer: \(error)")
+                AppLogger.error(.general, "Failed to recreate ModelContainer: \(error)")
                 fatalError("Could not create ModelContainer: \(error)")
             }
         }

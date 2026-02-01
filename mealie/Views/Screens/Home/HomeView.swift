@@ -84,7 +84,7 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear {
-                print("🏠 HomeView appeared with \(recipes.count) recipes, hasSyncedFavorites: \(hasSyncedFavorites)")
+                AppLogger.debug(.ui, "HomeView appeared with \(recipes.count) recipes, hasSyncedFavorites: \(hasSyncedFavorites)")
                 // Sync favorites from server on first load
                 if !hasSyncedFavorites && !recipes.isEmpty {
                     Task {
@@ -95,17 +95,17 @@ struct HomeView: View {
                     Task {
                         try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
                         if !hasSyncedFavorites && !recipes.isEmpty {
-                            print("🔄 Retrying favorites sync after delay")
+                            AppLogger.debug(.sync, "Retrying favorites sync after delay")
                             await syncFavoritesFromServer()
                         }
                     }
                 }
             }
             .onChange(of: recipes.count) { oldCount, newCount in
-                print("📊 Recipes count changed from \(oldCount) to \(newCount)")
+                AppLogger.debug(.sync, "Recipes count changed from \(oldCount) to \(newCount)")
                 // If recipes were loaded and we haven't synced favorites yet, do it now
                 if newCount > 0 && !hasSyncedFavorites {
-                    print("🔄 Recipes loaded, triggering favorites sync")
+                    AppLogger.debug(.sync, "Recipes loaded, triggering favorites sync")
                     Task {
                         await syncFavoritesFromServer()
                     }
@@ -118,18 +118,18 @@ struct HomeView: View {
     }
     
     private func syncFavoritesFromServer() async {
-        print("🔄 Starting favorites sync for \(recipes.count) recipes")
+        AppLogger.debug(.sync, "Starting favorites sync for \(recipes.count) recipes")
         do {
             try await self.mealieAPIService.syncFavoritesFromServer(recipes: recipes)
             // Save the context to persist the favorite status changes and update the UI
             try? modelContext.save()
             hasSyncedFavorites = true
-            print("✅ Favorites sync completed successfully")
+            AppLogger.info(.sync, "Favorites sync completed successfully")
             
             // Show toast message when sync is completed for the first time
             ToastManager.shared.showInfo("Favorites synced successfully! Your saved recipes are now up to date.")
         } catch {
-            print("❌ Failed to sync favorites from server: \(error)")
+            AppLogger.error(.sync, "Failed to sync favorites from server: \(error)")
             ToastManager.shared.showError("Failed to sync favorites: \(error.localizedDescription)")
         }
     }

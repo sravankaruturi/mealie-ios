@@ -87,7 +87,7 @@ final class AuthenticationState {
         // Only handle if currently authenticated (avoid duplicate handling)
         guard case .authenticated = status else { return }
 
-        print("🚫 AuthenticationState: Session expired, logging out user")
+        AppLogger.warning(.auth, "Session expired, logging out user")
 
         // Clear credentials
         keychainService.deleteToken()

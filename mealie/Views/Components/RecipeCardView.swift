@@ -83,14 +83,14 @@ struct RecipeCardView: View {
     private func toggleFavorite() async {
         let slug = recipe.slug
         guard !slug.isEmpty else {
-            print("Recipe slug is missing, cannot sync with server")
+            AppLogger.warning(.recipes, "Recipe slug is missing, cannot sync with server")
             // Still toggle locally even if server sync fails
             await MainActor.run {
                 recipe.toggleFavorite()
                 do {
                     try modelContext.save()
                 } catch {
-                    print("Failed to save favorite toggle locally: \(error)")
+                    AppLogger.error(.recipes, "Failed to save favorite toggle locally: \(error)")
                     ToastManager.shared.showError("Failed to save changes locally")
                 }
             }
@@ -106,7 +106,7 @@ struct RecipeCardView: View {
             do {
                 try modelContext.save()
             } catch {
-                print("Failed to save optimistic favorite update: \(error)")
+                AppLogger.error(.recipes, "Failed to save optimistic favorite update: \(error)")
                 // Continue anyway - the server sync will be the source of truth
             }
         }
@@ -125,7 +125,7 @@ struct RecipeCardView: View {
             // Server sync successful, no need to revert
             
         } catch {
-            print("Failed to sync favorite with server: \(error)")
+            AppLogger.error(.recipes, "Failed to sync favorite with server: \(error)")
             
             // Revert the optimistic update on failure and show toast - ensure this happens on main actor
             await MainActor.run {
@@ -133,7 +133,7 @@ struct RecipeCardView: View {
                 do {
                     try modelContext.save()
                 } catch {
-                    print("Failed to revert favorite state: \(error)")
+                    AppLogger.error(.recipes, "Failed to revert favorite state: \(error)")
                 }
                 // Show user feedback via toast (must be on MainActor)
                 ToastManager.shared.showError("Failed to sync favorite with server")

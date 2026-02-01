@@ -128,21 +128,21 @@ final class RecipesViewModel {
             decoder.dateDecodingStrategy = .iso8601 // Assuming your date-time strings are ISO 8601
 
             let decodedResponse = try decoder.decode(Components.Schemas.PaginationBase_RecipeSummary_.self, from: Data(jsonString.utf8))
-            print("Successfully decoded response: \(decodedResponse.total) items")
+            AppLogger.debug(.network, "Successfully decoded response: \(decodedResponse.total) items")
         } catch DecodingError.keyNotFound(let key, let context) {
-            print("Decoding Error: Missing key '\(key.stringValue)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
-            print("Debug Description: \(context.debugDescription)")
+            AppLogger.error(.network, "Decoding Error: Missing key '\(key.stringValue)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+            AppLogger.debug(.network, "Debug Description: \(context.debugDescription)")
         } catch DecodingError.typeMismatch(let type, let context) {
-            print("Decoding Error: Type mismatch for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
-            print("Debug Description: \(context.debugDescription)")
+            AppLogger.error(.network, "Decoding Error: Type mismatch for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+            AppLogger.debug(.network, "Debug Description: \(context.debugDescription)")
         } catch DecodingError.valueNotFound(let type, let context) {
-            print("Decoding Error: Value not found for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
-            print("Debug Description: \(context.debugDescription)")
+            AppLogger.error(.network, "Decoding Error: Value not found for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+            AppLogger.debug(.network, "Debug Description: \(context.debugDescription)")
         } catch DecodingError.dataCorrupted(let context) {
-            print("Decoding Error: Data corrupted: \(context.debugDescription)")
-            print("Debug Description: \(context.underlyingError?.localizedDescription ?? "None")")
+            AppLogger.error(.network, "Decoding Error: Data corrupted: \(context.debugDescription)")
+            AppLogger.debug(.network, "Underlying error: \(context.underlyingError?.localizedDescription ?? "None")")
         } catch {
-            print("An unknown decoding error occurred: \(error)")
+            AppLogger.error(.network, "An unknown decoding error occurred: \(error)")
         }
         
     }
@@ -239,7 +239,7 @@ final class RecipesViewModel {
             } catch {
                 let errorMessage = "Failed to sync recipes to the local database: \(error.localizedDescription)"
                 self.error = errorMessage
-                print(errorMessage)
+                AppLogger.error(.sync, errorMessage)
                 ToastManager.shared.showError(errorMessage)
                 return
             }
@@ -260,10 +260,10 @@ final class RecipesViewModel {
             // Use optimized fetching
             let remoteRecipes = try await apiService.fetchAllRecipesOptimized(existingRecipes: recipes)
             await updateLocalStore(with: remoteRecipes)
-            
+
         } catch {
             self.error = error.localizedDescription
-            print(self.error!)
+            AppLogger.error(.sync, "Recipe sync failed: \(error.localizedDescription)")
         }
     }
 
@@ -275,10 +275,10 @@ final class RecipesViewModel {
             // Fetch all recipes without optimization
             let remoteRecipes = try await apiService.fetchAllRecipes()
             await updateLocalStore(with: remoteRecipes)
-            
+
         } catch {
             self.error = error.localizedDescription
-            print(self.error!)
+            AppLogger.error(.sync, "Force sync failed: \(error.localizedDescription)")
         }
     }
 }

@@ -204,7 +204,7 @@ struct ProfileView: View {
             currentUser = try await self.mealieAPIService.getCurrentUser()
         } catch {
             userError = error.localizedDescription
-            print("Failed to load user info: \(error)")
+            AppLogger.error(.network, "Failed to load user info: \(error)")
         }
         
         isLoadingUser = false

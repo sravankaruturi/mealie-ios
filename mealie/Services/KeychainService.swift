@@ -27,12 +27,12 @@ final class KeychainService {
             if getServerURL() == nil {
                 let saveSucceeded = saveServerURL(legacyURL)
                 if saveSucceeded {
-                    print("🔐 Migrated server URL from UserDefaults to Keychain")
+                    AppLogger.info(.auth, "Migrated server URL from UserDefaults to Keychain")
                     // Only remove from UserDefaults after successful migration
                     UserDefaults.standard.removeObject(forKey: legacyServerURLKey)
                 } else {
                     // Keep the legacy entry if migration failed to avoid data loss
-                    print("⚠️ Failed to migrate server URL to Keychain - keeping UserDefaults entry")
+                    AppLogger.warning(.auth, "Failed to migrate server URL to Keychain - keeping UserDefaults entry")
                 }
             } else {
                 // Keychain already has a URL, safe to remove legacy entry

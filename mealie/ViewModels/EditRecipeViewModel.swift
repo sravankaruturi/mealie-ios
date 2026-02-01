@@ -85,18 +85,18 @@ class EditRecipeViewModel {
         
         do {
             // Debug logging
-            print("🔧 EditRecipeViewModel: Starting recipe update for slug: \(recipe.slug)")
-            print("🔧 EditRecipeViewModel: Recipe ID: \(recipe.remoteId)")
-            print("🔧 EditRecipeViewModel: User ID: \(recipe.userId)")
-            print("🔧 EditRecipeViewModel: Group ID: \(recipe.groupId)")
-            print("🔧 EditRecipeViewModel: Household ID: \(recipe.houseHoldId)")
-            print("🔧 EditRecipeViewModel: Name: \(name)")
-            print("🔧 EditRecipeViewModel: Slug: \(slug)")
-            print("🔧 EditRecipeViewModel: OrgURL: \(orgURL)")
-            print("🔧 EditRecipeViewModel: Description: \(description)")
-            print("🔧 EditRecipeViewModel: Servings: \(servings)")
-            print("🔧 EditRecipeViewModel: Ingredients count: \(ingredients.count)")
-            print("🔧 EditRecipeViewModel: Instructions count: \(instructions.count)")
+            AppLogger.debug(.recipes, "Starting recipe update for slug: \(recipe.slug)")
+            AppLogger.debug(.recipes, "Recipe ID: \(recipe.remoteId)")
+            AppLogger.debug(.recipes, "User ID: \(recipe.userId)")
+            AppLogger.debug(.recipes, "Group ID: \(recipe.groupId)")
+            AppLogger.debug(.recipes, "Household ID: \(recipe.houseHoldId)")
+            AppLogger.debug(.recipes, "Name: \(name)")
+            AppLogger.debug(.recipes, "Slug: \(slug)")
+            AppLogger.debug(.recipes, "OrgURL: \(orgURL)")
+            AppLogger.debug(.recipes, "Description: \(description)")
+            AppLogger.debug(.recipes, "Servings: \(servings)")
+            AppLogger.debug(.recipes, "Ingredients count: \(ingredients.count)")
+            AppLogger.debug(.recipes, "Instructions count: \(instructions.count)")
             
             // Filter out empty ingredients and validate data
             let validIngredients = ingredients.filter { ingredient in
@@ -119,8 +119,8 @@ class EditRecipeViewModel {
                 return cleaned
             }
             
-            print("🔧 EditRecipeViewModel: Valid ingredients count: \(validIngredients.count)")
-            print("🔧 EditRecipeViewModel: Valid instructions count: \(validInstructions.count)")
+            AppLogger.debug(.recipes, "Valid ingredients count: \(validIngredients.count)")
+            AppLogger.debug(.recipes, "Valid instructions count: \(validInstructions.count)")
             
             // Ensure recipe name is not empty
             recipeName = name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Recipe" : name
@@ -206,15 +206,15 @@ class EditRecipeViewModel {
             }
             
             // Debug logging for ingredients
-            print("🔧 EditRecipeViewModel: API Ingredients:")
+            AppLogger.debug(.recipes, "API Ingredients:")
             for (index, ingredient) in apiIngredients.enumerated() {
-                print("    \(index): \(ingredient.food?.value2?.name ?? "Unknown") - \(ingredient.quantity) \(ingredient.unit?.value2?.name ?? "Unknown")")
+                AppLogger.debug(.recipes, "  \(index): \(ingredient.food?.value2?.name ?? "Unknown") - \(ingredient.quantity) \(ingredient.unit?.value2?.name ?? "Unknown")")
             }
-            
+
             // Debug logging for cleaned ingredients
-            print("🔧 EditRecipeViewModel: Cleaned Ingredients:")
+            AppLogger.debug(.recipes, "Cleaned Ingredients:")
             for (index, ingredient) in cleanedIngredients.enumerated() {
-                print("    \(index): \(ingredient.name) - \(ingredient.quantity) \(ingredient.unit.name)")
+                AppLogger.debug(.recipes, "  \(index): \(ingredient.name) - \(ingredient.quantity) \(ingredient.unit.name)")
             }
             
             // Convert instructions to API format
@@ -229,15 +229,15 @@ class EditRecipeViewModel {
             }
             
             // Debug logging for instructions
-            print("🔧 EditRecipeViewModel: API Instructions:")
+            AppLogger.debug(.recipes, "API Instructions:")
             for (index, instruction) in apiInstructions.enumerated() {
-                print("    \(index): \(instruction.text ?? "No text")")
+                AppLogger.debug(.recipes, "  \(index): \(instruction.text ?? "No text")")
             }
 
             var remoteId = recipe.remoteId
             if isNew {
                 let slug = try await apiService.addRecipeManual(recipeName: recipeName)
-                print("🔧 EditRecipeViewModel: Recipe added with slug: \(slug)")
+                AppLogger.debug(.recipes, "Recipe added with slug: \(slug)")
                 let serverRecipe = try await apiService.fetchRecipeDetails(slug: slug)
                 recipeSlug = serverRecipe.slug
                 self.slug = serverRecipe.slug
@@ -285,24 +285,24 @@ class EditRecipeViewModel {
                 comments: []
             )
             
-            print("🔧 EditRecipeViewModel: About to call updateRecipe API...")
-            
+            AppLogger.debug(.recipes, "About to call updateRecipe API...")
+
             // Debug: Log the final recipe data
-            print("🔧 EditRecipeViewModel: Final recipe data:")
-            print("    - ID: \(recipe.remoteId)")
-            print("    - User ID: \(finalUserId)")
-            print("    - Group ID: \(finalGroupId)")
-            print("    - Household ID: \(finalHouseholdId)")
-            print("    - Slug: \(recipeSlug)")
-            print("    - OrgURL: \(recipeOrgURL ?? "NIL")")
-            print("    - Name: \(recipeName)")
-            print("    - Ingredients: \(apiIngredients.count)")
-            print("    - Instructions: \(apiInstructions.count)")
+            AppLogger.debug(.recipes, "Final recipe data:")
+            AppLogger.debug(.recipes, "  - ID: \(recipe.remoteId)")
+            AppLogger.debug(.recipes, "  - User ID: \(finalUserId)")
+            AppLogger.debug(.recipes, "  - Group ID: \(finalGroupId)")
+            AppLogger.debug(.recipes, "  - Household ID: \(finalHouseholdId)")
+            AppLogger.debug(.recipes, "  - Slug: \(recipeSlug)")
+            AppLogger.debug(.recipes, "  - OrgURL: \(recipeOrgURL ?? "NIL")")
+            AppLogger.debug(.recipes, "  - Name: \(recipeName)")
+            AppLogger.debug(.recipes, "  - Ingredients: \(apiIngredients.count)")
+            AppLogger.debug(.recipes, "  - Instructions: \(apiInstructions.count)")
                         
             // Update the recipe on the server
             try await apiService.updateRecipe(slug: recipeSlug, recipeData: recipeInput)
             
-            print("🔧 EditRecipeViewModel: API call successful, updating local data...")
+            AppLogger.debug(.recipes, "API call successful, updating local data...")
             
             // Update local recipe data
             recipe.remoteId = remoteId
@@ -328,26 +328,26 @@ class EditRecipeViewModel {
             do {
                 try modelContext.save()
                 showSuccess = true
-                print("🔧 EditRecipeViewModel: Recipe update completed successfully")
+                AppLogger.info(.recipes, "Recipe update completed successfully")
             } catch {
-                print("❌ EditRecipeViewModel: Failed to save recipe locally: \(error)")
+                AppLogger.error(.recipes, "Failed to save recipe locally: \(error)")
                 self.error = "Recipe updated on server but failed to save locally: \(error.localizedDescription)"
             }
             isLoading = false
         } catch {
-            print("❌ EditRecipeViewModel: Error updating recipe: \(error)")
-            print("❌ EditRecipeViewModel: Error type: \(type(of: error))")
+            AppLogger.error(.recipes, "Error updating recipe: \(error)")
+            AppLogger.error(.recipes, "Error type: \(type(of: error))")
             if let mealieError = error as? MealieAPIError {
-                print("❌ EditRecipeViewModel: MealieAPIError case: \(mealieError)")
+                AppLogger.error(.recipes, "MealieAPIError case: \(mealieError)")
             }
-            
+
             // Log the data that was being sent to help debug
-            print("❌ EditRecipeViewModel: Failed to update recipe with data:")
-            print("    - Name: \(recipeName)")
-            print("    - Ingredients count: \(apiIngredients.count)")
-            print("    - Instructions count: \(apiInstructions.count)")
-            print("    - First ingredient: \(apiIngredients.first?.food?.value2?.name ?? "None")")
-            print("    - First instruction: \(apiInstructions.first?.text ?? "None")")
+            AppLogger.error(.recipes, "Failed to update recipe with data:")
+            AppLogger.error(.recipes, "  - Name: \(recipeName)")
+            AppLogger.error(.recipes, "  - Ingredients count: \(apiIngredients.count)")
+            AppLogger.error(.recipes, "  - Instructions count: \(apiInstructions.count)")
+            AppLogger.error(.recipes, "  - First ingredient: \(apiIngredients.first?.food?.value2?.name ?? "None")")
+            AppLogger.error(.recipes, "  - First instruction: \(apiInstructions.first?.text ?? "None")")
             
             self.error = error.localizedDescription
             self.isLoading = false
@@ -437,7 +437,7 @@ class EditRecipeViewModel {
     private func fetchUnits() async {
         do {
             self.availableUnits = try await apiService.fetchAllUnits()
-            print("✅ Successfully fetched \(self.availableUnits.count) units.")
+            AppLogger.info(.recipes, "Successfully fetched \(self.availableUnits.count) units.")
         } catch {
             self.error = "Failed to load units: \(error.localizedDescription)"
         }
@@ -446,7 +446,7 @@ class EditRecipeViewModel {
     private func fetchFoods() async {
         do {
             self.availableFoods = try await apiService.fetchAllFoods()
-            print("✅ Successfully fetched \(self.availableFoods.count) foods.")
+            AppLogger.info(.recipes, "Successfully fetched \(self.availableFoods.count) foods.")
         } catch {
             self.error = "Failed to load available foods: \(error.localizedDescription)"
         }

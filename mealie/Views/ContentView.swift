@@ -91,6 +91,6 @@ extension ContentView {
         }
         
         // TODO: Route the detected URL into the correct import flow.
-        print("Importing recipe from clipboard URL: \(url)")
+        AppLogger.info(.ui, "Importing recipe from clipboard URL: \(url)")
     }
 }

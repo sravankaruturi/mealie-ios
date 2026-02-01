@@ -85,18 +85,18 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                 }
             }
         } catch let error as URLError {
-            print("🌐 MealieAPIService: URLError occurred: \(error)")
-            print("🌐 MealieAPIService: URLError code: \(error.code)")
+            AppLogger.error(.network, "URLError occurred: \(error)")
+            AppLogger.debug(.network, "URLError code: \(error.code)")
             if error.code == .appTransportSecurityRequiresSecureConnection || error.code == .serverCertificateUntrusted {
                 throw MealieAPIError.insecureConnection
             }
             throw MealieAPIError.networkError(error)
         } catch let error as DecodingError {
-            print("🌐 MealieAPIService: DecodingError occurred: \(error)")
+            AppLogger.error(.network, "DecodingError occurred: \(error)")
             throw MealieAPIError.decodingError(error)
         } catch {
-            print("🌐 MealieAPIService: Unknown error occurred: \(error)")
-            print("🌐 MealieAPIService: Error type: \(type(of: error))")
+            AppLogger.error(.network, "Unknown error occurred: \(error)")
+            AppLogger.debug(.network, "Error type: \(type(of: error))")
             // Catches decoding errors or other issues.
             throw MealieAPIError.networkError(error)
         }
@@ -194,7 +194,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                         cachedCount += 1
                     } else {
                         // Recipe has been updated, fetch full details
-                        print("Fetching updated recipe: \(existingRecipe.name ?? "Unknown") (server: \(recipeSummary.dateUpdated ?? "nil"), local: \(existingRecipe.dateUpdated ?? "nil"))")
+                        AppLogger.debug(.sync, "Fetching updated recipe: \(existingRecipe.name ?? "Unknown") (server: \(recipeSummary.dateUpdated ?? "nil"), local: \(existingRecipe.dateUpdated ?? "nil"))")
                         let updatedRecipe = try await fetchRecipeDetails(slug: slug)
                         // Preserve favorite state
                         updatedRecipe.isFavorite = existingRecipe.isFavorite
@@ -203,14 +203,14 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                     }
                 } else {
                     // New recipe, fetch full details
-                    print("Fetching new recipe: \(recipeSummary.name ?? "Unknown")")
+                    AppLogger.debug(.sync, "Fetching new recipe: \(recipeSummary.name ?? "Unknown")")
                     let newRecipe = try await fetchRecipeDetails(slug: slug)
                     updatedRecipes.append(newRecipe)
                     newCount += 1
                 }
             }
             
-            print("📊 Recipe sync stats: \(cachedCount) cached, \(fetchedCount) updated, \(newCount) new")
+            AppLogger.info(.sync, "Recipe sync stats: \(cachedCount) cached, \(fetchedCount) updated, \(newCount) new")
             
             return updatedRecipes
             
@@ -342,26 +342,21 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.custom("Client not initialized")
         }
         
-        print("🌐 MealieAPIService: Updating recipe with slug: \(slug)")
-        print("🌐 MealieAPIService: Recipe data ID: \(recipeData.id ?? "nil")")
-        print("🌐 MealieAPIService: Recipe data name: \(recipeData.name ?? "nil")")
-        print("🌐 MealieAPIService: Recipe data userId: \(recipeData.userId)")
-        print("🌐 MealieAPIService: Recipe data householdId: \(recipeData.householdId)")
-        print("🌐 MealieAPIService: Recipe data groupId: \(recipeData.groupId)")
-        print("🌐 MealieAPIService: Recipe data ingredients count: \(recipeData.recipeIngredient?.count)")
-        print("🌐 MealieAPIService: Recipe data instructions count: \(recipeData.recipeInstructions?.count)")
-        
+        AppLogger.debug(.network, "Updating recipe with slug: \(slug)")
+        AppLogger.debug(.network, "Recipe data - ID: \(recipeData.id ?? "nil"), name: \(recipeData.name ?? "nil")")
+        AppLogger.debug(.network, "Recipe data - userId: \(recipeData.userId), householdId: \(recipeData.householdId), groupId: \(recipeData.groupId)")
+        AppLogger.debug(.network, "Recipe data - ingredients: \(recipeData.recipeIngredient?.count ?? 0), instructions: \(recipeData.recipeInstructions?.count ?? 0)")
+
         // Log the request body for debugging
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             let jsonData = try encoder.encode(recipeData)
             if let jsonString = String(data: jsonData, encoding: .utf8) {
-                print("🌐 MealieAPIService: Request body:")
-                print(jsonString)
+                AppLogger.debug(.network, "Request body: \(jsonString)")
             }
         } catch {
-            print("🌐 MealieAPIService: Could not encode request body for logging: \(error)")
+            AppLogger.warning(.network, "Could not encode request body for logging: \(error)")
         }
         
         let input = Operations.update_one_api_recipes__slug__put.Input(
@@ -369,33 +364,33 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             body: .json(recipeData)
         )
         
-        print("🌐 MealieAPIService: Making API request...")
-        
+        AppLogger.debug(.network, "Making API request to update recipe...")
+
         let output = try await client.update_one_api_recipes__slug__put(input)
-        
-        print("🌐 MealieAPIService: Received response")
-        
+
+        AppLogger.debug(.network, "Received response for recipe update")
+
         switch output {
         case .ok:
-            print("🌐 MealieAPIService: Recipe updated successfully")
+            AppLogger.info(.network, "Recipe updated successfully")
             // Successfully updated
             break
         case .unprocessableContent(let response):
-            print("🌐 MealieAPIService: Validation error: \(response)")
+            AppLogger.error(.network, "Validation error: \(response)")
             throw MealieAPIError.custom("Validation Error: \(response)")
         case .undocumented(let statusCode, let response):
-            print("🌐 MealieAPIService: Undocumented status code: \(statusCode)")
-            print("🌐 MealieAPIService: Response: \(response)")
-            
+            AppLogger.error(.network, "Undocumented status code: \(statusCode)")
+            AppLogger.debug(.network, "Response: \(response)")
+
             // Try to extract error message from response body
             if let responseBody = response.body {
                 do {
                     let data = try await responseBody.reduce(into: Data()) { $0.append(contentsOf: $1) }
                     if let jsonString = String(data: data, encoding: .utf8) {
-                        print("🌐 MealieAPIService: Response body: \(jsonString)")
+                        AppLogger.debug(.network, "Response body: \(jsonString)")
                     }
                 } catch {
-                    print("🌐 MealieAPIService: Could not read response body: \(error)")
+                    AppLogger.warning(.network, "Could not read response body: \(error)")
                 }
             }
             
@@ -542,31 +537,31 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     
     /// Sync favorites from server to local recipes
     func syncFavoritesFromServer(recipes: [Recipe]) async throws {
-        print("🔄 Starting favorites sync...")
+        AppLogger.debug(.sync, "Starting favorites sync...")
         let serverFavorites = try await getCurrentUserFavorites()
-        
-        print("📊 Server favorites response: \(serverFavorites.ratings.count) ratings")
-//        
-        // Debug: Print the structure of the first rating to understand the data
+
+        AppLogger.debug(.sync, "Server favorites response: \(serverFavorites.ratings.count) ratings")
+
+        // Debug: Log the structure of the first rating to understand the data
         if let firstRating = serverFavorites.ratings.first {
-            print("🔍 First rating structure: \(firstRating)")
+            AppLogger.debug(.sync, "First rating structure: \(firstRating)")
         }
-        
+
         // Create a set of favorite recipe slugs from server
         let serverFavoriteIds = Set<String>(serverFavorites.ratings.compactMap { rating -> String? in
-            
+
             guard let isFav = rating.isFavorite, isFav else {
                 return nil
             }
-            
+
             // Try different possible field names for the recipe identifier
             let recipeId = rating.recipeId
-            print("❤️ Found favorite recipe: \(recipeId)")
+            AppLogger.debug(.sync, "Found favorite recipe: \(recipeId)")
             return recipeId
         })
-        
-        print("📋 Server favorite ids: \(serverFavoriteIds)")
-        print("📋 Local recipe ids: \(recipes.map { $0.remoteId })")
+
+        AppLogger.debug(.sync, "Server favorite ids: \(serverFavoriteIds)")
+        AppLogger.debug(.sync, "Local recipe ids: \(recipes.map { $0.remoteId })")
         
         var updatedCount = 0
         
@@ -578,12 +573,12 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                 if recipe.isFavorite != shouldBeFavorite {
                     recipe.isFavorite = shouldBeFavorite
                     updatedCount += 1
-                    print("🔄 Updated recipe '\(recipe.name ?? "Unknown")' favorite state to: \(shouldBeFavorite)")
+                    AppLogger.debug(.sync, "Updated recipe '\(recipe.name ?? "Unknown")' favorite state to: \(shouldBeFavorite)")
                 }
             }
         }
         
-        print("✅ Synced Favourites: \(updatedCount) recipes updated")
+        AppLogger.info(.sync, "Synced favourites: \(updatedCount) recipes updated")
     }
     
 

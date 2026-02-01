@@ -163,14 +163,14 @@ struct RecipeListView: View {
                         do {
                             try modelContext.save()
                         } catch {
-                            print("Failed to save fetched recipe locally: \(error)")
+                            AppLogger.error(.recipes, "Failed to save fetched recipe locally: \(error)")
                             ToastManager.shared.showWarning("Recipe loaded but couldn't be saved locally")
                         }
                         recipesViewModel.recipes.append(fetchedRecipe)
                         selectedRecipe = fetchedRecipe
                     }
                 } catch {
-                    print("Error fetching recipe: \(error)")
+                    AppLogger.error(.recipes, "Error fetching recipe: \(error)")
                 }
             }
         }

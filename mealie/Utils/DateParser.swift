@@ -41,7 +41,7 @@ func parseAPIDate(_ dateString: String?) -> Date? {
     }
 
     // It's useful to know if parsing fails for an unexpected format
-    print("⚠️ Could not parse date: \(dateString)")
+    AppLogger.warning(.general, "Could not parse date: \(dateString)")
     return nil
 }
 
