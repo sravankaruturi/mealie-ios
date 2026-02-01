@@ -386,14 +386,10 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         AppLogger.debug(.network, "Recipe data - userId: \(recipeData.userId), householdId: \(recipeData.householdId), groupId: \(recipeData.groupId)")
         AppLogger.debug(.network, "Recipe data - ingredients: \(recipeData.recipeIngredient?.count ?? 0), instructions: \(recipeData.recipeInstructions?.count ?? 0)")
 
-        // Log the request body for debugging
+        // Log request metadata for debugging (avoid logging full payload to prevent PII leakage)
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let jsonData = try encoder.encode(recipeData)
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                AppLogger.debug(.network, "Request body: \(jsonString)")
-            }
+            let jsonData = try JSONEncoder().encode(recipeData)
+            AppLogger.debug(.network, "Request body size: \(jsonData.count) bytes")
         } catch {
             AppLogger.warning(.network, "Could not encode request body for logging: \(error)")
         }
