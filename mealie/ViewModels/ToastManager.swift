@@ -86,12 +86,12 @@ final class ToastManager {
         showToast(message, type: .info)
     }
     
-    /// Removes all pending toasts from the queue.
+    /// Removes all pending toasts and resets all state immediately.
     func clearQueue() {
         toastQueue.removeAll()
-        if isShowingToast {
-            hideToast()
-        }
+        isShowingToast = false
+        currentToast = nil
+        isProcessingQueue = false
     }
     
     /// The number of toasts waiting in the queue.

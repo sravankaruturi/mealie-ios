@@ -7,11 +7,11 @@ final class MealPlanViewModel {
     
     var error: String?
     var isLoading: Bool = false
-    let apiService: MealieAPIService
+    let apiService: MealieAPIServiceProtocol
     let modelContext: ModelContext
-    
+
     /// Creates a meal plan view model with API and local storage access.
-    init(apiService: MealieAPIService, modelContext: ModelContext) {
+    init(apiService: MealieAPIServiceProtocol, modelContext: ModelContext) {
         self.apiService = apiService
         self.modelContext = modelContext
     }

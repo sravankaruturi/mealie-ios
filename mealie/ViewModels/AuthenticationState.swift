@@ -37,7 +37,7 @@ final class AuthenticationState {
         }
     }
 
-    private let keychainService: KeychainService
+    private let keychainService: KeychainServiceProtocol
     private let authService: AuthenticationServiceProtocol
 
     /// Token for the session expiration observer - must be stored to properly remove observer
@@ -62,7 +62,7 @@ final class AuthenticationState {
     }
 
     /// Creates the auth state and subscribes to session expiration notifications.
-    init(keychainService: KeychainService = .shared, authService: AuthenticationServiceProtocol) {
+    init(keychainService: KeychainServiceProtocol = KeychainService.shared, authService: AuthenticationServiceProtocol) {
 
         self.keychainService = keychainService
         self.authService = authService

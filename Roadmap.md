@@ -29,7 +29,7 @@ A comprehensive list of planned improvements and features for the app.
 
 ## Medium Priority - Architecture & Performance
 
-- [ ] **M1: Fix N+1 Query Problem** - Make `fetchAllRecipesOptimized()` the default; current implementation makes N+1 API calls
+- [x] **M1: Fix N+1 Query Problem** - Make `fetchAllRecipesOptimized()` the default; current implementation makes N+1 API calls
   - `MealieAPIService.swift`
   - `RecipesViewModel.swift`
 
@@ -41,7 +41,7 @@ A comprehensive list of planned improvements and features for the app.
   - `RecipesViewModel.swift`
   - `MealPlanViewModel.swift`
 
-- [ ] **M4: Consolidate Date Parsing** - Unify multiple overlapping date parsing methods into a single utility
+- [x] **M4: Consolidate Date Parsing** - Unify multiple overlapping date parsing methods into a single utility
   - `MealieAPIService.swift` (lines 207-238)
   - `DateParser.swift`
 
@@ -111,12 +111,12 @@ A comprehensive list of planned improvements and features for the app.
 
 ## Testing - Quality Assurance
 
-- [ ] **T1: Service Tests** - Add comprehensive unit tests for API and authentication services
+- [x] **T1: Service Tests** - Add comprehensive unit tests for API and authentication services
   - New: `MealieAPIServiceTests.swift`
   - New: `AuthenticationServiceTests.swift`
   - New: `KeychainServiceTests.swift`
 
-- [ ] **T2: ViewModel Tests** - Add unit tests for all view models
+- [x] **T2: ViewModel Tests** - Add unit tests for all view models
   - New: `RecipesViewModelTests.swift`
   - New: `EditRecipeViewModelTests.swift`
   - New: `MealPlanViewModelTests.swift`

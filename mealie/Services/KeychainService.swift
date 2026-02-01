@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 /// Singleton service for securely storing authentication tokens and server URLs in the iOS Keychain.
-final class KeychainService {
+final class KeychainService: KeychainServiceProtocol {
     /// Shared singleton instance.
     static let shared = KeychainService()
 
