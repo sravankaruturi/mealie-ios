@@ -124,44 +124,17 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     }
     
     // MARK: - Recipes
-    /// Fetches all recipe summaries then downloads full details for each (N+1 calls).
+
+    /// Fetches all recipes with full details - makes N+1 API calls (1 for list + N for details).
+    /// - Note: Prefer `fetchAllRecipesOptimized(existingRecipes:)` which only fetches changed recipes.
     /// - Parameters:
     ///   - page: The page number to fetch (default 1).
     ///   - perPage: The number of recipes per page (default 50).
     /// - Returns: An array of fully-detailed `Recipe` objects.
+    @available(*, deprecated, message: "Use fetchAllRecipesOptimized(existingRecipes:) instead to avoid N+1 query problem")
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
-
-        guard let client = client else {
-            throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
-        }
-
-        let input = Operations.get_all_api_recipes_get.Input(query: .init() )
-        let output = try await client.get_all_api_recipes_get(input)
-        
-        switch output {
-        case .ok(let response):
-            
-            let paginationResponse = try response.body.json
-            
-            let recipeSummaries = paginationResponse.items
-            
-            var recipes: [Recipe] = []
-            
-            for recipeSummary in recipeSummaries {
-                
-                guard let slug = recipeSummary.slug else { continue }
-                
-                let recipe = try await fetchRecipeDetails(slug: slug)
-                recipes.append(recipe)
-                
-            }
-            
-            
-            return recipes
-        default:
-            throw MealieAPIError.custom("Failed to fetch recipes.")
-        }
-        
+        // Delegate to optimized version with empty array (fetches all as "new")
+        return try await fetchAllRecipesOptimized(existingRecipes: [], page: page, perPage: perPage)
     }
     
     /// Smart sync: only downloads details for new or updated recipes.
@@ -176,7 +149,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
         }
 
-        let input = Operations.get_all_api_recipes_get.Input(query: .init() )
+        let input = Operations.get_all_api_recipes_get.Input(query: .init(page: page, perPage: perPage))
         let output = try await client.get_all_api_recipes_get(input)
         
         switch output {
@@ -241,41 +214,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.custom("Failed to fetch recipes.")
         }
     }
-    
-    /// Helper method to parse date strings from the API
-    private func parseDateString(_ dateString: String?) -> Date? {
-        guard let dateString = dateString else { return nil }
-        
-        // Try ISO8601 format first (most common for API timestamps)
-        if let date = ISO8601DateFormatter().date(from: dateString) {
-            return date
-        }
-        
-        // Try date-only format (YYYY-MM-DD)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        if let date = dateFormatter.date(from: dateString) {
-            return date
-        }
-        
-        return nil
-    }
-    
-    /// Helper method to normalize timestamps for comparison
-    private func normalizeTimestamp(_ timestamp: String) -> String {
-        // If empty, return as is
-        guard !timestamp.isEmpty else { return timestamp }
-        
-        // Try to parse as ISO8601 and reformat consistently
-        if let date = ISO8601DateFormatter().date(from: timestamp) {
-            let formatter = ISO8601DateFormatter()
-            return formatter.string(from: date)
-        }
-        
-        // If we can't parse it, return the original string
-        return timestamp
-    }
-    
+
     /// Fetches full recipe details for a single recipe by slug.
     /// - Parameter slug: The recipe's URL slug identifier.
     /// - Returns: A fully-detailed `Recipe` object.

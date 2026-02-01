@@ -74,9 +74,11 @@ struct RecipesViewModelTests {
     }
 
     @Test
-    func forceSyncRecipes_callsFetchAllRecipes() async {
+    func forceSyncRecipes_callsFetchAllRecipesOptimizedWithEmptyArray() async {
         let (vm, api) = makeVM()
         await vm.forceSyncRecipes()
-        #expect(api.fetchAllRecipesCallCount == 1)
+        // M1: forceSyncRecipes now uses optimized path with empty array (treats all as "new")
+        #expect(api.fetchAllRecipesOptimizedCallCount == 1)
+        #expect(api.fetchAllRecipesCallCount == 0)
     }
 }

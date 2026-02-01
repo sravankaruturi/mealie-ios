@@ -30,8 +30,8 @@ A comprehensive list of planned improvements and features for the app.
 ## Medium Priority - Architecture & Performance
 
 - [x] **M1: Fix N+1 Query Problem** - Make `fetchAllRecipesOptimized()` the default; current implementation makes N+1 API calls
-  - `MealieAPIService.swift`
-  - `RecipesViewModel.swift`
+  - `MealieAPIService.swift` - deprecated old method, delegates to optimized
+  - `RecipesViewModel.swift` - forceSyncRecipes now uses optimized path
 
 - [x] **M2: Replace Print Statements with Proper Logging** - Replace 129 `print()` calls with structured logging using os.Logger
   - All service and view model files
@@ -42,8 +42,8 @@ A comprehensive list of planned improvements and features for the app.
   - `MealPlanViewModel.swift`
 
 - [x] **M4: Consolidate Date Parsing** - Unify multiple overlapping date parsing methods into a single utility
-  - `MealieAPIService.swift` (lines 207-238)
-  - `DateParser.swift`
+  - Removed duplicate `parseDateString()` and `normalizeTimestamp()` from MealieAPIService
+  - Code already uses shared `parseAPIDate()` from `DateParser.swift`
 
 - [ ] **M5: Extract Reusable Components** - Create shared views for duplicated rendering logic
   - New: `IngredientListView.swift`

@@ -56,11 +56,16 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
     func fetchAllRecipesOptimized(existingRecipes: [Recipe], page: Int, perPage: Int) async throws -> [Recipe] {
         // Simulate network delay
         try await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
-        
+
         if mockRecipes.isEmpty {
             mockRecipes = createMockRecipes()
         }
-        
+
+        // When no existing recipes, return all mock recipes (treats all as "new")
+        guard !existingRecipes.isEmpty else {
+            return mockRecipes
+        }
+
         // Simulate some recipes being updated
         var updatedRecipes = existingRecipes
         for (index, recipe) in updatedRecipes.enumerated() {
@@ -68,7 +73,7 @@ final class MockMealieAPIService: MealieAPIServiceProtocol {
                 recipe.dateUpdated = ISO8601DateFormatter().string(from: Date())
             }
         }
-        
+
         return updatedRecipes
     }
     
