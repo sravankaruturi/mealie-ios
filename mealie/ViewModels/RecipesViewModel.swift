@@ -3,21 +3,30 @@ import SwiftUI
 import SwiftData
 
 @Observable
+/// Manages recipe data synchronization between the Mealie server and the local SwiftData store.
 final class RecipesViewModel {
 
+    /// Whether a sync operation is currently in progress.
     var isSyncing: Bool = false
+    /// The most recent error message, if any.
     var error: String?
+    /// The SwiftData model context for persisting recipes locally.
     let modelContext: ModelContext
+    /// The API service used for server communication.
     let apiService: MealieAPIServiceProtocol
+    /// The current list of locally stored recipes.
     var recipes: [Recipe]
+    /// Timestamp of the most recent successful sync.
     var lastSyncTime: Date?
     
+    /// Creates a view model with the given model context and API service, loading any existing recipes.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext
         self.apiService = mealieAPIService
         self.recipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
     }
     
+    /// Debug helper to test JSON decoding against sample API responses.
     func testDecoding() {
 
         // Paste your full JSON response here as a multi-line string
@@ -147,7 +156,7 @@ final class RecipesViewModel {
         
     }
     
-    /// Check if we need to sync recipes based on last sync time
+    /// Returns `true` if recipes should be synced (empty, never synced, or stale beyond 5 minutes).
     func shouldSyncRecipes() -> Bool {
         // If we have no recipes, we definitely need to sync
         if recipes.isEmpty {
@@ -166,6 +175,7 @@ final class RecipesViewModel {
         return timeSinceLastSync > fiveMinutes
     }
     
+    /// Reconciles remote recipes with local storage: inserts new, updates changed, deletes removed.
     private func updateLocalStore(with remoteRecipes: [Recipe]) async {
         await MainActor.run {
             let localRecipes = self.recipes
@@ -252,6 +262,7 @@ final class RecipesViewModel {
         }
     }
 
+    /// Performs an optimized sync, only fetching details for new or updated recipes.
     func syncRecipes() async {
         isSyncing = true
         error = nil
@@ -267,6 +278,7 @@ final class RecipesViewModel {
         }
     }
 
+    /// Performs a full sync, re-downloading all recipe details regardless of local state.
     func forceSyncRecipes() async {
         isSyncing = true
         error = nil

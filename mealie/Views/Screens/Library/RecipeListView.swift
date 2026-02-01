@@ -1,8 +1,9 @@
 import SwiftUI
 import SwiftData
 
+/// Grid-based recipe library with search, add (manual/URL), and navigation to recipe details.
 struct RecipeListView: View {
-    
+
     var mealieAPIService: MealieAPIServiceProtocol
     
     @State var recipesViewModel: RecipesViewModel
@@ -20,6 +21,7 @@ struct RecipeListView: View {
     let gridItemWidth: CGFloat = 180
     let gridItemHeight: CGFloat = 140
     
+    /// Recipes filtered by the current search text.
     var filteredRecipes: [Recipe] {
         if searchText.isEmpty { return recipesViewModel.recipes }
         return recipesViewModel.recipes.filter { $0.name!.localizedCaseInsensitiveContains(searchText) }
@@ -171,6 +173,9 @@ struct RecipeListView: View {
                     }
                 } catch {
                     AppLogger.error(.recipes, "Error fetching recipe: \(error)")
+                    await MainActor.run {
+                        ToastManager.shared.showError("Could not load recipe")
+                    }
                 }
             }
         }

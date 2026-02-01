@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/// Sheet-based ingredient editor with a custom number pad, unit picker, and name field.
 struct IngredientInputView: View {
     
     @Environment(\.dismiss) private var dismiss
@@ -76,6 +77,7 @@ struct IngredientInputView: View {
         .shadow(radius: 10)
     }
     
+    /// Builds an `Ingredient` from the current field values, updating the original if provided.
     private func createIngredient() -> Ingredient {
         let quantityValue = Double(quantity) ?? 0.0
         let unit = IngredientUnit(name: selectedUnit)
@@ -101,6 +103,7 @@ struct IngredientInputView: View {
 }
 
 // MARK: - Ingredient Display View
+/// Displays the current quantity, unit, and an editable ingredient name.
 struct IngredientDisplayView: View {
     let quantity: String
     let selectedUnit: String
@@ -130,6 +133,7 @@ struct IngredientDisplayView: View {
 }
 
 // MARK: - Unit Selection View
+/// Horizontal scrollable chip picker for selecting a measurement unit.
 struct UnitSelectionView: View {
     @Binding var selectedUnit: String
     
@@ -167,6 +171,7 @@ struct UnitSelectionView: View {
 }
 
 // MARK: - Number Pad View
+/// Custom numeric keypad with fraction buttons, digit grid, operators, and a delete key.
 struct NumberPadView: View {
     let onKeyPress: (String) -> Void
     let onDelete: () -> Void
@@ -229,6 +234,7 @@ struct NumberPadView: View {
 }
 
 // MARK: - Keypad Button
+/// A single keypad button with configurable title, background, and foreground colors.
 struct KeypadButton: View {
     let title: String
     let backgroundColor: Color

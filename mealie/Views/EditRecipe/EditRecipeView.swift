@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+/// The main body of the recipe editor, displaying name, photos, website, ingredients, and instructions sections.
 struct EditRecipeBodyView : View {
     
     @Environment(\.dismiss) var dismiss
@@ -243,6 +244,7 @@ struct EditRecipeBodyView : View {
     // instructionRow function moved to EditRecipeRowViews.swift
 }
 
+/// Wrapper view that resolves the authenticated user before presenting `EditRecipeBodyView`.
 struct EditRecipeView: View {
     
     @Environment(\.dismiss) var dismiss

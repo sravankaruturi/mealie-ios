@@ -1,8 +1,9 @@
 import SwiftUI
 import Kingfisher
 
+/// A card-style view displaying a recipe's image, name, and a favorite toggle button.
 struct RecipeCardView: View {
-    
+
     let recipe: Recipe
     @Environment(\.modelContext) private var modelContext
     @State private var isTogglingFavorite = false
@@ -80,6 +81,7 @@ struct RecipeCardView: View {
         }
     }
     
+    /// Optimistically toggles favorite state locally, then syncs with the server. Reverts on failure.
     private func toggleFavorite() async {
         let slug = recipe.slug
         guard !slug.isEmpty else {

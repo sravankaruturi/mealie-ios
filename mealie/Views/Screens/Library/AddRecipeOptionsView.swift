@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Floating action menu offering URL import and manual recipe creation options.
 struct AddRecipeOptionsView: View {
     
     let onURLImport: () -> Void

@@ -3,22 +3,28 @@ import SwiftUI
 import SwiftData
 
 @Observable
+/// Manages adding new recipes from URLs or manual entry.
 final class AddRecipeViewModel {
+    /// Whether a recipe import/creation operation is in progress.
     var isLoading: Bool = false
+    /// The most recent error from an add operation.
     var error: String?
     var showSuccess: Bool = false
-    var newRecipeSlug: String? // For navigation to the new recipe
+    /// The successfully added recipe slug, if any.
+    var newRecipeSlug: String?
     
     let apiService: MealieAPIServiceProtocol
     let modelContext: ModelContext
     let recipesViewModel: RecipesViewModel? // Optional for manual recipes
     
+    /// Creates a view model for adding recipes.
     init(apiService: MealieAPIServiceProtocol, modelContext: ModelContext, recipesViewModel: RecipesViewModel? = nil) {
         self.apiService = apiService
         self.modelContext = modelContext
         self.recipesViewModel = recipesViewModel
     }
     
+    /// Imports a recipe by URL, saves it locally, and syncs with the server.
     func addRecipeFromURL(_ url: URL) async {
         await MainActor.run {
             isLoading = true

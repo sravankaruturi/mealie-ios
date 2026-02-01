@@ -8,9 +8,11 @@
 import SwiftUI
 import SwiftData
 
+/// The main entry point for the Gourmet (Mealie) iOS application.
 @main
 struct mealieApp: App {
-    
+
+    /// The shared SwiftData model container for persistent recipe storage.
     private var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -69,13 +71,18 @@ struct mealieApp: App {
     }
 }
 
+/// Observable root state object that owns the app's service and authentication dependencies.
 @Observable
 final class AppState {
 
+    /// The API service used for all Mealie server communication.
     let mealieAPIService: MealieAPIServiceProtocol
+    /// The service responsible for authenticating the user.
     let authService: AuthenticationServiceProtocol
+    /// The observable authentication state shared across the app.
     let authState: AuthenticationState
 
+    /// Initializes the service graph with default concrete implementations.
     init() {
         self.mealieAPIService = MealieAPIService(serverURL: nil)
         self.authService = AuthenticationService(mealieAPIService: mealieAPIService)

@@ -1,21 +1,26 @@
 import SwiftUI
 import SwiftData
 
+/// Home screen showing favorite, recently viewed, and recently added recipe sections.
 struct HomeView: View {
-    
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Recipe.name) private var recipes: [Recipe]
     @State private var hasSyncedFavorites = false
-    
+
+    /// The API service for syncing favorites from the server.
     var mealieAPIService: MealieAPIServiceProtocol
-    
+
+    /// Recipes the user has marked as favorites.
     var favorites: [Recipe] { recipes.filter { $0.isFavorite } }
-    
-    var recentlyViewed: [Recipe] { 
-        Array(recipes.sorted { parseAPIDateForSort($0.lastMade) > parseAPIDateForSort($1.lastMade) }.prefix(5)) 
+
+    /// The 5 most recently made recipes, sorted by `lastMade` date.
+    var recentlyViewed: [Recipe] {
+        Array(recipes.sorted { parseAPIDateForSort($0.lastMade) > parseAPIDateForSort($1.lastMade) }.prefix(5))
     }
-    var recentlyAdded: [Recipe] { 
-        Array(recipes.sorted { parseAPIDateForSort($0.dateAdded) > parseAPIDateForSort($1.dateAdded) }.prefix(5)) 
+    /// The 5 most recently added recipes, sorted by `dateAdded`.
+    var recentlyAdded: [Recipe] {
+        Array(recipes.sorted { parseAPIDateForSort($0.dateAdded) > parseAPIDateForSort($1.dateAdded) }.prefix(5))
     }
     
     var body: some View {
@@ -117,6 +122,7 @@ struct HomeView: View {
         }
     }
     
+    /// Downloads favorite state from the server and updates local recipes.
     private func syncFavoritesFromServer() async {
         AppLogger.debug(.sync, "Starting favorites sync for \(recipes.count) recipes")
         do {
@@ -135,6 +141,7 @@ struct HomeView: View {
     }
 }
 
+/// A styled section header used in the home screen.
 struct SectionHeader: View {
     let title: String
     var body: some View {

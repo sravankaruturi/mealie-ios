@@ -1,24 +1,22 @@
 import Foundation
 
-/// Date Parse Class to help us with parsing the date we receive from elsewhere
-
-// A reusable formatter for ISO8601 dates, configured to handle fractional seconds.
-// This is more efficient than creating a new formatter on each call.
+/// Reusable ISO8601 formatter configured to handle fractional seconds.
+/// Allocated once at launch for efficiency.
 private let isoFormatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     return formatter
 }()
 
-// Some API responses omit fractional seconds entirely. Keep a second formatter so we
-// can parse those values without recreating formatters on each call.
+/// Fallback ISO8601 formatter for timestamps that omit fractional seconds.
 private let isoFormatterNoFractional: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime]
     return formatter
 }()
 
-// A helper to parse various date formats from the API
+/// Parses a date string from the Mealie API, trying ISO8601 (with and without fractional seconds)
+/// and falling back to date-only format (`yyyy-MM-dd`). Returns `nil` if all formats fail.
 func parseAPIDate(_ dateString: String?) -> Date? {
     guard let dateString = dateString, !dateString.isEmpty else { return nil }
     
@@ -45,7 +43,7 @@ func parseAPIDate(_ dateString: String?) -> Date? {
     return nil
 }
 
-// A version for SwiftUI views that need a non-optional Date for sorting
+/// Parses a date string for sorting, returning `.distantPast` if parsing fails.
 func parseAPIDateForSort(_ dateString: String?) -> Date {
     return parseAPIDate(dateString) ?? .distantPast
 } 

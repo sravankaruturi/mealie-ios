@@ -1,7 +1,9 @@
 import Foundation
 import Security
 
+/// Singleton service for securely storing authentication tokens and server URLs in the iOS Keychain.
 final class KeychainService {
+    /// Shared singleton instance.
     static let shared = KeychainService()
 
     // Keychain service identifiers
@@ -64,6 +66,8 @@ final class KeychainService {
         return tokenStatus == errSecSuccess && urlSaved
     }
 
+    /// Retrieves the stored authentication token from the Keychain.
+    /// - Returns: The token string, or `nil` if not found.
     func getToken() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -96,6 +100,8 @@ final class KeychainService {
         return status == errSecSuccess
     }
 
+    /// Retrieves the stored server URL from the Keychain.
+    /// - Returns: The server `URL`, or `nil` if not found.
     func getServerURL() -> URL? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -115,6 +121,7 @@ final class KeychainService {
 
     // MARK: - Deletion
 
+    /// Removes all stored credentials (token, server URL) from the Keychain and legacy UserDefaults.
     func deleteToken() {
         // Delete token from Keychain
         let tokenQuery: [String: Any] = [

@@ -6,6 +6,7 @@
 //
 import SwiftData
 
+/// Represents an authenticated Mealie user, stored in SwiftData.
 @Model
 final class User {
     
@@ -27,6 +28,7 @@ final class User {
     var householdId: String
     var householdSlug: String
     
+    /// Creates a user with all profile properties.
     init(id: String, username: String? = nil, fullName: String? = nil, email: String, authMethod: String? = nil, admin: Bool? = nil, group: String, household: String, advanced: Bool? = nil, canInvite: Bool? = nil, canManage: Bool? = nil, canManageHousehold: Bool? = nil, canOrganize: Bool? = nil, groupId: String, groupSlug: String, householdId: String, householdSlug: String) {
         self.id = id
         self.username = username
@@ -47,6 +49,7 @@ final class User {
         self.householdSlug = householdSlug
     }
     
+    /// Creates a user from a Mealie API `UserOut` response.
     convenience init(from user: Components.Schemas.UserOut) {
         
         self.init(
@@ -75,6 +78,7 @@ final class User {
 
 extension User {
     
+    /// Sample user for SwiftUI previews and testing.
     static var sampleData: User = User(
         id: "test", email: "test@test.com", group: "", household: "", groupId: "", groupSlug: "", householdId: "", householdSlug: ""
     )

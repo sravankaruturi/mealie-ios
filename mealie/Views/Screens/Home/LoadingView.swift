@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Full-screen branded loading view shown while the app fetches initial data.
 struct LoadingView: View {
     var title: String = "Cooking something tasty..."
     var subtitle: String? = "Fetching the latest from your Mealie kitchen."

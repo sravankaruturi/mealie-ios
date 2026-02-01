@@ -8,14 +8,19 @@ import SwiftUI
 import Observation
 
 @Observable
+/// Observable state machine managing user authentication lifecycle.
 final class AuthenticationState {
 
+    /// Possible authentication states.
     enum AuthStatus: Equatable {
         case unknown
+        /// Logged in with user profile.
         case authenticated(User)
+        /// Not logged in.
         case unauthenticated
         case loading
-        case sessionExpired  // New state for expired sessions
+        /// Session expired, re-authentication needed.
+        case sessionExpired
 
         static func == (lhs: AuthStatus, rhs: AuthStatus) -> Bool {
             switch (lhs, rhs) {
@@ -38,12 +43,15 @@ final class AuthenticationState {
     /// Token for the session expiration observer - must be stored to properly remove observer
     private var sessionExpiredObserverToken: NSObjectProtocol?
 
+    /// The current authentication status.
     var status: AuthStatus = .unknown
+    /// Whether an authentication operation is in progress.
     var isLoading: Bool = false
 
-    /// Message to display when session expires
+    /// Message displayed when the session expires.
     var sessionExpiredMessage: String?
 
+    /// The authenticated user, if available.
     var user: User? {
         switch status {
         case .authenticated(let user):
@@ -53,6 +61,7 @@ final class AuthenticationState {
         }
     }
 
+    /// Creates the auth state and subscribes to session expiration notifications.
     init(keychainService: KeychainService = .shared, authService: AuthenticationServiceProtocol) {
 
         self.keychainService = keychainService
@@ -81,7 +90,7 @@ final class AuthenticationState {
 
     // MARK: - Session Expiration Handling
 
-    /// Called when the API returns a 401 Unauthorized response
+    /// Handles session expiration by clearing credentials and updating state.
     @MainActor
     private func handleSessionExpired() {
         // Only handle if currently authenticated (avoid duplicate handling)
@@ -100,7 +109,7 @@ final class AuthenticationState {
         ToastManager.shared.showWarning("Session expired. Please log in again.")
     }
 
-    /// Clears the session expired message (call this after user acknowledges)
+    /// Resets session-expired state back to unauthenticated for re-login.
     @MainActor
     func clearSessionExpiredState() {
         if status == .sessionExpired {
@@ -109,6 +118,7 @@ final class AuthenticationState {
         }
     }
 
+    /// Authenticates the user and transitions to the authenticated state on success.
     @MainActor
     func login(username: String, password: String, serverURL: URL) async throws {
         isLoading = true
@@ -126,12 +136,14 @@ final class AuthenticationState {
         }
     }
 
+    /// Clears all credentials and returns to unauthenticated state.
     @MainActor
     func logout() {
         keychainService.deleteToken()
         status = .unauthenticated
     }
 
+    /// Checks for a stored token on launch and validates it with the server.
     @MainActor
     func checkForExistingAuth() async {
 
@@ -155,6 +167,7 @@ final class AuthenticationState {
         }
     }
     
+    /// Whether the last error was a URL-related issue (helps UI show server config).
     var hasServerURLIssue: Bool {
         return keychainService.getToken() != nil && keychainService.getServerURL() == nil
     }

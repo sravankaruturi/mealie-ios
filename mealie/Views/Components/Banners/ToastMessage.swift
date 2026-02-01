@@ -1,11 +1,17 @@
 import SwiftUI
 
+/// A dismissible notification banner displayed at the bottom of the screen.
 struct ToastMessage: View {
+    /// The text content of the toast.
     let message: String
+    /// The visual style of the toast (error, warning, success, info).
     let type: ToastType
+    /// Closure called when the user dismisses the toast.
     let onDismiss: () -> Void
+    /// The number of additional toasts waiting in the queue.
     let queueCount: Int
-    
+
+    /// Visual style variants for toast messages.
     enum ToastType {
         case error
         case warning

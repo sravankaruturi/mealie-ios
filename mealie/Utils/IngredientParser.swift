@@ -1,7 +1,11 @@
 import Foundation
 
+/// Simple regex-based parser that extracts quantity, unit, and name from free-text ingredient strings.
 struct IngredientParser {
-    
+
+    /// Parses an ingredient string like "2 cups flour" into its components.
+    /// - Parameter text: The raw ingredient text to parse.
+    /// - Returns: A tuple of `(quantity, unit, name)`, or `nil` if the text doesn't match.
     static func parse(_ text: String) -> (quantity: Double, unit: String, name: String)? {
         
         // Very basic parser for demo purposes

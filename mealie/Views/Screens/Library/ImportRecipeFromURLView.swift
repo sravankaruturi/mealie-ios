@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+/// Entry point that resolves the `ModelContext` from the environment before presenting the URL import form.
 struct ImportRecipeFromURLView: View {
     
     // We need to fetch the modelContext from the environment here.
@@ -23,6 +24,7 @@ struct ImportRecipeFromURLView: View {
     }
 }
 
+/// The URL import form where the user enters a recipe URL and triggers the import process.
 struct ImportRecipeFromURLContentView: View {
     
     @Environment(\.dismiss) var dismiss

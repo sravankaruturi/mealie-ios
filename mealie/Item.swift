@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+/// Default Xcode template model; retained for SwiftData schema compatibility.
 @Model
 final class Item {
     var timestamp: Date

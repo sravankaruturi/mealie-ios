@@ -2,12 +2,14 @@ import SwiftUI
 import SwiftData
 import UIKit
 
+/// Root view that switches between login, loading, and the main tab interface based on authentication state.
 struct ContentView: View {
     @State private var showPasteboardBanner = false
     @State private var lastPasteboardChangeCount: Int = -1
-    
-    // Services
+
+    /// The API service passed down to child views.
     var mealieAPIService: MealieAPIServiceProtocol
+    /// The shared authentication state driving the view hierarchy.
     var authState: AuthenticationState
     
     var body: some View {
@@ -68,6 +70,7 @@ struct ContentView: View {
 
 extension ContentView {
     
+    /// Asynchronously checks the pasteboard for a web URL and shows the import banner if found.
     private func schedulePasteboardDetection() {
         guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
         Task {

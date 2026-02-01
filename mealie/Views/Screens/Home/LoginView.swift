@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Lightweight wrapper that injects the `AuthenticationState` environment into `LoginBodyView`.
 struct LoginView : View {
     
     @Environment(AuthenticationState.self) var authState
@@ -10,11 +11,13 @@ struct LoginView : View {
     
 }
 
+/// The login form displaying server URL, username, and password fields with a continue button.
 struct LoginBodyView: View {
     
     @State var viewModel: LoginViewModel
     @FocusState private var focusedField: Field?
     
+    /// The text fields available for keyboard focus management.
     enum Field: Hashable {
         case server, username, password
     }

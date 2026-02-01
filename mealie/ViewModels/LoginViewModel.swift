@@ -2,19 +2,26 @@ import Foundation
 import SwiftUI
 
 @Observable
+/// Manages login form state and authentication flow.
 final class LoginViewModel {
-    
+
     var authState: AuthenticationState
-    
+
+    /// The server URL entered by the user.
     var serverURL: String = ""
+    /// The username entered by the user.
     var username: String = ""
+    /// The password entered by the user.
     var password: String = ""
+    /// Whether authentication is in progress.
     var isLoading: Bool = false
     
+    /// Creates a login view model bound to the given authentication state.
     init(authState: AuthenticationState) {
         self.authState = authState
     }
     
+    /// Validates inputs and attempts to authenticate with the server.
     func authenticate() async {
         isLoading = true
         defer { isLoading = false }

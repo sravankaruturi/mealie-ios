@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Full-screen recipe detail view with ingredients, instructions, and an edit sheet.
 struct RecipeDetailView: View {
     
     let recipe: Recipe

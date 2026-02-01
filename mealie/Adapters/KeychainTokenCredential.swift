@@ -19,8 +19,12 @@ extension Notification.Name {
     static let sessionExpired = Notification.Name("mealie.sessionExpired")
 }
 
+/// OpenAPI client middleware that attaches a Bearer token from the Keychain
+/// and monitors responses for 401 session-expiration events.
 struct AuthenticationMiddleware: ClientMiddleware {
 
+    /// Intercepts every outgoing request to attach the stored Bearer token,
+    /// and posts a `.sessionExpired` notification when a 401 is returned.
     func intercept(
         _ request: HTTPTypes.HTTPRequest,
         body: OpenAPIRuntime.HTTPBody?,

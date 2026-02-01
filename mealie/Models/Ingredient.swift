@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+/// Represents a unit of measurement for ingredients (e.g., cups, grams, tablespoons).
 struct IngredientUnit: Hashable, Identifiable, Codable {
     var id: String { name }
     var name: String
@@ -9,6 +10,7 @@ struct IngredientUnit: Hashable, Identifiable, Codable {
     var unitDescription: String?
     // Add other fields as needed from OpenAPI
     
+    /// Predefined lookup table of common cooking units.
     static let standardUnits: [String: IngredientUnit] = [
         "cup": IngredientUnit(name: "Cup", pluralName: "Cups", abbreviation: "c"),
         "tablespoon": IngredientUnit(name: "Tablespoon", pluralName: "Tablespoons", abbreviation: "tbsp"),
@@ -28,6 +30,7 @@ struct IngredientUnit: Hashable, Identifiable, Codable {
         // Add more as needed
     ]
     
+    /// Matches a unit string to a known `IngredientUnit`, falling back to a custom unit.
     static func matchUnit(_ unitName: String) -> IngredientUnit {
         let lower = unitName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         // Try direct match
@@ -45,6 +48,7 @@ struct IngredientUnit: Hashable, Identifiable, Codable {
     }
 }
 
+/// A single ingredient in a recipe, stored in SwiftData.
 @Model
 final class Ingredient {
     var orderIndex: Int
@@ -59,6 +63,7 @@ final class Ingredient {
     @Relationship(inverse: \Recipe.ingredients)
     var recipe: Recipe?
     
+    /// Creates an ingredient with all properties.
     init(orderIndex: Int, name: String, quantity: Double, unit: IngredientUnit, originalText: String, note: String, title: String? = nil, recipe: Recipe? = nil) {
         self.orderIndex = orderIndex
         self.name = name
@@ -70,7 +75,7 @@ final class Ingredient {
         self.recipe = recipe
     }
     
-    // Default initializer for SwiftData
+    /// Default initializer required by SwiftData.
     init() {
         self.orderIndex = 0
         self.name = ""
@@ -82,7 +87,7 @@ final class Ingredient {
         self.recipe = nil
     }
 
-    // Helper to extract unit candidate from text
+    /// Extracts a probable unit name from ingredient text (e.g., "2 tablespoons oil" -> "tablespoons").
     static func extractUnitCandidate(from text: String) -> String {
         // Example: "2 tablespoons oil" -> "tablespoons"
         let components = text.split(separator: " ")
@@ -99,6 +104,7 @@ final class Ingredient {
     }
 
     // MARK: - Convenience Initializer for API Type
+    /// Creates an ingredient from a Mealie API `RecipeIngredient-Output` response.
     convenience init(from apiObject: Components.Schemas.RecipeIngredient_hyphen_Output, index: Int) {
         let displayText = apiObject.display ?? ""
         // Prefer backend-normalized unit if available
@@ -142,6 +148,7 @@ final class Ingredient {
     }
     
     // MARK: - Sample Data
+    /// Sample ingredient for SwiftUI previews and testing.
     static let sampleIngredient = Ingredient(
         orderIndex: 0,
         name: "Flour",
