@@ -53,6 +53,7 @@ final class AddRecipeViewModel {
                 self.isLoading = false
             }
         } catch {
+            AppLogger.error(.recipes, "Failed to import recipe from URL: \(error)")
             await MainActor.run {
                 self.error = error.localizedDescription
                 self.isLoading = false

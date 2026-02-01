@@ -24,7 +24,7 @@ struct RecipeListView: View {
     /// Recipes filtered by the current search text.
     var filteredRecipes: [Recipe] {
         if searchText.isEmpty { return recipesViewModel.recipes }
-        return recipesViewModel.recipes.filter { $0.name!.localizedCaseInsensitiveContains(searchText) }
+        return recipesViewModel.recipes.filter { ($0.name ?? "").localizedCaseInsensitiveContains(searchText) }
     }
     
     var body: some View {

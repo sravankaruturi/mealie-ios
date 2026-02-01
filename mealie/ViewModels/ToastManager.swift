@@ -1,6 +1,7 @@
 import SwiftUI
 import Observation
 
+@MainActor
 @Observable
 /// Singleton that manages a queue of toast notifications displayed to the user.
 final class ToastManager {

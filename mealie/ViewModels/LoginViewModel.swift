@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @Observable
 /// Manages login form state and authentication flow.
 final class LoginViewModel {

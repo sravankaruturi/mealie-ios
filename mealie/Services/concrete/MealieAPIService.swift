@@ -415,7 +415,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             // Successfully updated
             break
         case .unprocessableContent(let response):
-            AppLogger.error(.network, "Validation error: \(response)")
+            AppLogger.error(.network, "Validation error (unprocessable content)")
+            AppLogger.debug(.network, "Validation details: \(response)")
             throw MealieAPIError.custom("Validation Error: \(response)")
         case .undocumented(let statusCode, let response):
             AppLogger.error(.network, "Undocumented status code: \(statusCode)")

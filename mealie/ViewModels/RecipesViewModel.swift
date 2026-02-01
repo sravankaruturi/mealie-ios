@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+@MainActor
 @Observable
 /// Manages recipe data synchronization between the Mealie server and the local SwiftData store.
 final class RecipesViewModel {

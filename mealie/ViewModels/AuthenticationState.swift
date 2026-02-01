@@ -162,6 +162,7 @@ final class AuthenticationState {
             let user = try await authService.validateToken(token: token, serverURL: serverURL)
             status = .authenticated(user)
         } catch {
+            AppLogger.debug(.auth, "Token validation failed: \(error.localizedDescription)")
             keychainService.deleteToken()
             status = .unauthenticated
         }
