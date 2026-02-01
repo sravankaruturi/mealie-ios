@@ -422,9 +422,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             if let responseBody = response.body {
                 do {
                     let data = try await responseBody.reduce(into: Data()) { $0.append(contentsOf: $1) }
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        AppLogger.debug(.network, "Response body: \(jsonString)")
-                    }
+                    AppLogger.debug(.network, "Response body size: \(data.count) bytes")
                 } catch {
                     AppLogger.warning(.network, "Could not read response body: \(error)")
                 }
