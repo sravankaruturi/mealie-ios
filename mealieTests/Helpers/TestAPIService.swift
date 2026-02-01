@@ -73,7 +73,10 @@ class TestAPIService: MealieAPIServiceProtocol {
         return recipeSlug
     }
 
+    var addRecipeFromURLCallCount = 0
+
     func addRecipeFromURL(url: URL) async throws -> Recipe {
+        addRecipeFromURLCallCount += 1
         if let error = shouldThrow { throw error }
         return recipes.first ?? makeTestRecipe()
     }
@@ -120,7 +123,8 @@ class TestAPIService: MealieAPIServiceProtocol {
     // MARK: - Favorites
 
     func getCurrentUser() async throws -> Components.Schemas.UserOut {
-        fatalError("Not implemented for tests")
+        if let error = shouldThrow { throw error }
+        throw MealieAPIError.networkError(NSError(domain: "TestAPIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "getCurrentUser not configured for this test"]))
     }
 
     func addToFavorites(recipeSlug: String) async throws {
@@ -132,7 +136,8 @@ class TestAPIService: MealieAPIServiceProtocol {
     }
 
     func getCurrentUserFavorites() async throws -> Components.Schemas.UserRatings_UserRatingSummary_ {
-        fatalError("Not implemented for tests")
+        if let error = shouldThrow { throw error }
+        throw MealieAPIError.networkError(NSError(domain: "TestAPIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "getCurrentUserFavorites not configured for this test"]))
     }
 
     func syncFavoritesFromServer(recipes: [Recipe]) async throws {

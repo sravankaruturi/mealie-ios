@@ -40,12 +40,12 @@ struct LoginViewModelTests {
     @Test
     func authenticate_invalidURL_showsError() async {
         ToastManager.shared.clearQueue()
+        defer { ToastManager.shared.clearQueue() }
         let (vm, _) = makeVM()
         vm.serverURL = ""
         await vm.authenticate()
         // The toast should show an error about invalid URL
         #expect(ToastManager.shared.currentToast?.type == .error)
-        ToastManager.shared.clearQueue()
     }
 
     // MARK: - Successful Auth
@@ -69,13 +69,13 @@ struct LoginViewModelTests {
     @Test
     func authenticate_failure_showsErrorToast() async {
         ToastManager.shared.clearQueue()
+        defer { ToastManager.shared.clearQueue() }
         let (vm, _) = makeVM(shouldSucceed: false)
         vm.serverURL = "https://mealie.example.com"
         vm.username = "user"
         vm.password = "wrong"
         await vm.authenticate()
         #expect(ToastManager.shared.currentToast?.type == .error)
-        ToastManager.shared.clearQueue()
     }
 
     // MARK: - Loading State

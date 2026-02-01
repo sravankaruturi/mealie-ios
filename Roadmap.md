@@ -111,12 +111,12 @@ A comprehensive list of planned improvements and features for the app.
 
 ## Testing - Quality Assurance
 
-- [ ] **T1: Service Tests** - Add comprehensive unit tests for API and authentication services
+- [x] **T1: Service Tests** - Add comprehensive unit tests for API and authentication services
   - New: `MealieAPIServiceTests.swift`
   - New: `AuthenticationServiceTests.swift`
   - New: `KeychainServiceTests.swift`
 
-- [ ] **T2: ViewModel Tests** - Add unit tests for all view models
+- [x] **T2: ViewModel Tests** - Add unit tests for all view models
   - New: `RecipesViewModelTests.swift`
   - New: `EditRecipeViewModelTests.swift`
   - New: `MealPlanViewModelTests.swift`

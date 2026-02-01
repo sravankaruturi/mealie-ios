@@ -3,6 +3,7 @@ import SwiftData
 import Testing
 @testable import mealIO
 
+@MainActor
 struct MealPlanViewModelTests {
 
     // MARK: - generateShoppingList() Tests
