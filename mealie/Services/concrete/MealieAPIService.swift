@@ -134,7 +134,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     @available(*, deprecated, message: "Use fetchAllRecipesOptimized(existingRecipes:) instead to avoid N+1 query problem")
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
         // Delegate to optimized version with empty array (fetches all as "new")
-        return try await fetchAllRecipesOptimized(existingRecipes: [])
+        return try await fetchAllRecipesOptimized(existingRecipes: [], page: page, perPage: perPage)
     }
     
     /// Smart sync: only downloads details for new or updated recipes.
@@ -149,7 +149,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             throw MealieAPIError.custom("Client not initialized. Please set server URL first.")
         }
 
-        let input = Operations.get_all_api_recipes_get.Input(query: .init() )
+        let input = Operations.get_all_api_recipes_get.Input(query: .init(page: page, perPage: perPage))
         let output = try await client.get_all_api_recipes_get(input)
         
         switch output {
