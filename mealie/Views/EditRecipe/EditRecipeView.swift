@@ -184,16 +184,7 @@ struct EditRecipeBodyView : View {
             ForEach(Array(viewModel.ingredients.enumerated()), id: \.element.id) { index, ingredient in
                 self.ingredientRow(index: index, ingredient: ingredient)
             }
-            Button(action: viewModel.addIngredient) {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Add Ingredient")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(.systemBlue).opacity(0.15))
-                .cornerRadius(16)
-            }
+            AddItemButton(title: "Add Ingredient", action: viewModel.addIngredient)
         }
         .padding(.horizontal)
     }
@@ -208,35 +199,14 @@ struct EditRecipeBodyView : View {
             let grouped = Dictionary(grouping: viewModel.instructions) { $0.title ?? "" }
             ForEach(Array(grouped.keys.sorted()), id: \.self) { section in
                 if !section.isEmpty {
-                    Text(section)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .padding(.vertical, 4)
+                    RecipeSectionHeader(title: section, style: .edit)
                 }
                 ForEach((grouped[section] ?? []).sorted(by: { $0.step < $1.step }), id: \.id) { instruction in
                     self.instructionRow(instruction: instruction)
             }
             }
-            Button(action: viewModel.addInstructionSection) {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Add Section")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(.systemBlue).opacity(0.15))
-                .cornerRadius(16)
-            }
-            Button(action: viewModel.addInstruction) {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                    Text("Add Step")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(.systemBlue).opacity(0.15))
-                .cornerRadius(16)
-            }
+            AddItemButton(title: "Add Section", action: viewModel.addInstructionSection)
+            AddItemButton(title: "Add Step", action: viewModel.addInstruction)
         }
         .padding(.horizontal)
     }

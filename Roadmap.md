@@ -45,11 +45,11 @@ A comprehensive list of planned improvements and features for the app.
   - Removed duplicate `parseDateString()` and `normalizeTimestamp()` from MealieAPIService
   - Code already uses shared `parseAPIDate()` from `DateParser.swift`
 
-- [ ] **M5: Extract Reusable Components** - Create shared views for duplicated rendering logic
-  - New: `IngredientListView.swift`
-  - New: `InstructionListView.swift`
-  - `RecipeDetailView.swift`
-  - `RecipeCardView.swift`
+- [x] **M5: Extract Reusable Components** - Create shared views for duplicated rendering logic
+  - New: `AddItemButton.swift` — reusable full-width add button (replaces 3 duplicates in EditRecipeView)
+  - New: `SectionHeader.swift` — section title with detail/edit style variants
+  - New: `RecipeMetadataRow.swift` — metadata label row used by RecipeDetailView and RecipeCardView
+  - New: `NumberPadView.swift` — consolidated number pad (was duplicated in IngredientInputView and IngredientEditSheet)
 
 ---
 
@@ -143,4 +143,4 @@ A comprehensive list of planned improvements and features for the app.
 
 ---
 
-Last updated: January 2026
+Last updated: February 2026
