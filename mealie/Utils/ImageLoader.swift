@@ -4,16 +4,24 @@ import Foundation
 import Kingfisher
 import SwiftUI
 
+/// A SwiftUI view that loads and displays a recipe image from the Mealie server using Kingfisher.
 struct RecipeImageView: View {
-    
+
+    /// The API service used to construct image URLs.
     var mealieAPIService: MealieAPIServiceProtocol
-    
+
+    /// The remote recipe ID used to build the image URL.
     let recipeId: String
+    /// The image size variant to load.
     let imageType: ImageType
+    /// An optional placeholder image shown while loading.
     let placeholder: Image?
+    /// How the image fills its frame.
     let contentMode: SwiftUI.ContentMode
+    /// Corner radius applied to the loaded image.
     let cornerRadius: CGFloat
-    
+
+    /// Creates a recipe image view.
     init(
         mealieAPIService: MealieAPIServiceProtocol,
         recipeId: String,
@@ -43,7 +51,7 @@ struct RecipeImageView: View {
                     .foregroundColor(.gray)
             }
             .onFailure { error in
-                print("Failed to load recipe image: \(error)")
+                AppLogger.error(.general, "Failed to load recipe image: \(error)")
             }
             .cacheMemoryOnly(false) // Cache to disk for better performance
             .fade(duration: 0.3) // Smooth fade-in animation

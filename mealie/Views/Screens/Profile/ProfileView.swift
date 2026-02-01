@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// User profile screen showing server info, sync status, and logout functionality.
 struct ProfileView: View {
     @Environment(AuthenticationState.self) private var authState
     let recipesViewModel: RecipesViewModel
@@ -194,6 +195,7 @@ struct ProfileView: View {
         }
     }
     
+    /// Fetches the current user's profile from the server.
     private func loadUserInfo() async {
         guard !isLoadingUser else { return }
         
@@ -204,12 +206,13 @@ struct ProfileView: View {
             currentUser = try await self.mealieAPIService.getCurrentUser()
         } catch {
             userError = error.localizedDescription
-            print("Failed to load user info: \(error)")
+            AppLogger.error(.network, "Failed to load user info: \(error)")
         }
         
         isLoadingUser = false
     }
     
+    /// Returns a human-readable relative time string for the last sync (e.g., "5 min ago").
     private func formatLastSyncTime() -> String {
         guard let lastSync = recipesViewModel.lastSyncTime else {
             return "Never"
@@ -221,6 +224,7 @@ struct ProfileView: View {
     }
 }
 
+/// A reusable row displaying an icon, title, value, and optional subtitle.
 struct InfoRow: View {
     let icon: String
     let title: String

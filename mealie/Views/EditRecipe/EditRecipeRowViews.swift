@@ -1,8 +1,9 @@
 import SwiftUI
 
-// Row-level helper functions for EditRecipeBodyView
+/// Row-level helper views used by `EditRecipeBodyView`.
 extension EditRecipeBodyView {
-    
+
+    /// Builds a single editable ingredient row with delete and reorder controls.
     @ViewBuilder
     func ingredientRow(index: Int, ingredient: Ingredient) -> some View {
         HStack {
@@ -30,6 +31,7 @@ extension EditRecipeBodyView {
         .background(Color(.systemBackground))
     }
     
+    /// Builds a single editable instruction row with delete control and inline text editing.
     @ViewBuilder
     func instructionRow(instruction: Instruction) -> some View {
         HStack(alignment: .top) {

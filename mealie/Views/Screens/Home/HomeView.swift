@@ -1,21 +1,26 @@
 import SwiftUI
 import SwiftData
 
+/// Home screen showing favorite, recently viewed, and recently added recipe sections.
 struct HomeView: View {
-    
+
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Recipe.name) private var recipes: [Recipe]
     @State private var hasSyncedFavorites = false
-    
+
+    /// The API service for syncing favorites from the server.
     var mealieAPIService: MealieAPIServiceProtocol
-    
+
+    /// Recipes the user has marked as favorites.
     var favorites: [Recipe] { recipes.filter { $0.isFavorite } }
-    
-    var recentlyViewed: [Recipe] { 
-        Array(recipes.sorted { parseAPIDateForSort($0.lastMade) > parseAPIDateForSort($1.lastMade) }.prefix(5)) 
+
+    /// The 5 most recently made recipes, sorted by `lastMade` date.
+    var recentlyViewed: [Recipe] {
+        Array(recipes.sorted { parseAPIDateForSort($0.lastMade) > parseAPIDateForSort($1.lastMade) }.prefix(5))
     }
-    var recentlyAdded: [Recipe] { 
-        Array(recipes.sorted { parseAPIDateForSort($0.dateAdded) > parseAPIDateForSort($1.dateAdded) }.prefix(5)) 
+    /// The 5 most recently added recipes, sorted by `dateAdded`.
+    var recentlyAdded: [Recipe] {
+        Array(recipes.sorted { parseAPIDateForSort($0.dateAdded) > parseAPIDateForSort($1.dateAdded) }.prefix(5))
     }
     
     var body: some View {
@@ -84,7 +89,7 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .onAppear {
-                print("🏠 HomeView appeared with \(recipes.count) recipes, hasSyncedFavorites: \(hasSyncedFavorites)")
+                AppLogger.debug(.ui, "HomeView appeared with \(recipes.count) recipes, hasSyncedFavorites: \(hasSyncedFavorites)")
                 // Sync favorites from server on first load
                 if !hasSyncedFavorites && !recipes.isEmpty {
                     Task {
@@ -95,17 +100,17 @@ struct HomeView: View {
                     Task {
                         try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
                         if !hasSyncedFavorites && !recipes.isEmpty {
-                            print("🔄 Retrying favorites sync after delay")
+                            AppLogger.debug(.sync, "Retrying favorites sync after delay")
                             await syncFavoritesFromServer()
                         }
                     }
                 }
             }
             .onChange(of: recipes.count) { oldCount, newCount in
-                print("📊 Recipes count changed from \(oldCount) to \(newCount)")
+                AppLogger.debug(.sync, "Recipes count changed from \(oldCount) to \(newCount)")
                 // If recipes were loaded and we haven't synced favorites yet, do it now
                 if newCount > 0 && !hasSyncedFavorites {
-                    print("🔄 Recipes loaded, triggering favorites sync")
+                    AppLogger.debug(.sync, "Recipes loaded, triggering favorites sync")
                     Task {
                         await syncFavoritesFromServer()
                     }
@@ -117,24 +122,26 @@ struct HomeView: View {
         }
     }
     
+    /// Downloads favorite state from the server and updates local recipes.
     private func syncFavoritesFromServer() async {
-        print("🔄 Starting favorites sync for \(recipes.count) recipes")
+        AppLogger.debug(.sync, "Starting favorites sync for \(recipes.count) recipes")
         do {
             try await self.mealieAPIService.syncFavoritesFromServer(recipes: recipes)
             // Save the context to persist the favorite status changes and update the UI
             try? modelContext.save()
             hasSyncedFavorites = true
-            print("✅ Favorites sync completed successfully")
+            AppLogger.info(.sync, "Favorites sync completed successfully")
             
             // Show toast message when sync is completed for the first time
             ToastManager.shared.showInfo("Favorites synced successfully! Your saved recipes are now up to date.")
         } catch {
-            print("❌ Failed to sync favorites from server: \(error)")
+            AppLogger.error(.sync, "Failed to sync favorites from server: \(error)")
             ToastManager.shared.showError("Failed to sync favorites: \(error.localizedDescription)")
         }
     }
 }
 
+/// A styled section header used in the home screen.
 struct SectionHeader: View {
     let title: String
     var body: some View {

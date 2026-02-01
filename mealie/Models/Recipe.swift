@@ -2,6 +2,8 @@ import Foundation
 import SwiftData
 
 /// This is based on the Recipe Input Schema Component.
+///
+/// A recipe stored in SwiftData, mirroring the Mealie API schema.
 @Model
 final class Recipe: Hashable {
     @Attribute(.unique) var remoteId: String
@@ -62,6 +64,7 @@ final class Recipe: Hashable {
     
     // MARK: - Initializers
     
+    /// Creates a recipe with all properties explicitly specified.
     init(remoteId: String, userId: String, groupId: String, houseHoldId: String, name: String?, slug: String, image: String?, recipeDescription: String, recipeServings: Int, recipeYieldQuantity: Int, recipeYield: String?, totalTime: String?, prepTime: String?, cookTime: String?, performTime: String?, rating: Int?, orgUrl: String?, dateAdded: String?, dateUpdated: String?, createdAt: String?, lastMade: String?, update_at: String?, lastModified: Date = Date(), isFavorite: Bool = false, categories: [RecipeCategory] = [], tags: [Tag] = [], tools: [RecipeTool] = [], ingredients: [Ingredient] = [], instructions: [Instruction] = [], nutrition: RecipeNutrition? = nil, settings: RecipeSettings? = nil, assets: [RecipeAsset] = [], notes: [RecipeNote] = [], extras: String = "", comments: [RecipeComment] = []) {
         self.remoteId = remoteId
         self.userId = userId
@@ -102,6 +105,7 @@ final class Recipe: Hashable {
     
     // MARK: - Convenience Initializers for API Types
     
+    /// Creates a recipe from a `Recipe-Output` API response.
     convenience init(output: Components.Schemas.Recipe_hyphen_Output) {
         let remoteId = output.id ?? UUID().uuidString
         let userId = output.userId ?? ""
@@ -170,6 +174,7 @@ final class Recipe: Hashable {
         }
     }
     
+    /// Creates a recipe from a `Recipe-Input` API schema.
     convenience init(input: Components.Schemas.Recipe_hyphen_Input) {
         let remoteId = input.id ?? UUID().uuidString
         let userId = input.userId ?? ""
@@ -221,6 +226,7 @@ final class Recipe: Hashable {
         )
     }
     
+    /// Creates a minimal blank recipe with default values.
     convenience init(
         userId: String = "",
         groupId: String = "",
@@ -269,6 +275,7 @@ final class Recipe: Hashable {
 
 extension Recipe {
     
+    /// Sample recipe for SwiftUI previews and testing.
     static var sampleData : Recipe = Recipe(
         remoteId: "sample",
         userId: "user",
@@ -311,6 +318,7 @@ extension Recipe {
 
 // MARK: - Supporting Classes
 
+/// A kitchen tool associated with a recipe.
 @Model
 final class RecipeTool {
     var id: String
@@ -324,6 +332,7 @@ final class RecipeTool {
     }
 }
 
+/// A category for organizing recipes.
 @Model
 final class RecipeCategory {
     var id: String
@@ -339,6 +348,7 @@ final class RecipeCategory {
     }
 }
 
+/// Nutritional information for a recipe.
 @Model
 final class RecipeNutrition {
     var calories: Double?
@@ -361,6 +371,7 @@ final class RecipeNutrition {
     }
 }
 
+/// Display and privacy settings for a recipe.
 @Model
 final class RecipeSettings {
     var isPublic: Bool // Changed from 'public' to avoid Swift keyword conflict
@@ -381,6 +392,7 @@ final class RecipeSettings {
     }
 }
 
+/// A file asset (image, PDF, etc.) attached to a recipe.
 @Model
 final class RecipeAsset {
     var id: String
@@ -398,6 +410,7 @@ final class RecipeAsset {
     }
 }
 
+/// A user note attached to a recipe.
 @Model
 final class RecipeNote {
     var id: String
@@ -413,6 +426,7 @@ final class RecipeNote {
     }
 }
 
+/// A user comment on a recipe.
 @Model
 final class RecipeComment {
     var id: String

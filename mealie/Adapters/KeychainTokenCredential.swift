@@ -19,8 +19,12 @@ extension Notification.Name {
     static let sessionExpired = Notification.Name("mealie.sessionExpired")
 }
 
+/// OpenAPI client middleware that attaches a Bearer token from the Keychain
+/// and monitors responses for 401 session-expiration events.
 struct AuthenticationMiddleware: ClientMiddleware {
 
+    /// Intercepts every outgoing request to attach the stored Bearer token,
+    /// and posts a `.sessionExpired` notification when a 401 is returned.
     func intercept(
         _ request: HTTPTypes.HTTPRequest,
         body: OpenAPIRuntime.HTTPBody?,
@@ -35,9 +39,9 @@ struct AuthenticationMiddleware: ClientMiddleware {
         if let accessToken = KeychainService.shared.getToken() {
             request.headerFields[values: .authorization] = .init(["Bearer \(accessToken)"])
             didAttachToken = true
-            print("🔐 AuthenticationMiddleware: Added Bearer token for operation: \(operationID)")
+            AppLogger.debug(.auth, "Added Bearer token for operation: \(operationID)")
         } else {
-            print("⚠️ AuthenticationMiddleware: No access token found for operation: \(operationID)")
+            AppLogger.warning(.auth, "No access token found for operation: \(operationID)")
         }
 
         let (response, responseBody) = try await next(request, body, baseURL)
@@ -45,7 +49,7 @@ struct AuthenticationMiddleware: ClientMiddleware {
         // Check for 401 Unauthorized - only trigger session expired if we actually sent a token
         // This prevents login failures (wrong password) from triggering session expiration
         if response.status.code == 401 && didAttachToken {
-            print("🚫 AuthenticationMiddleware: Received 401 Unauthorized for operation: \(operationID) - session expired")
+            AppLogger.warning(.auth, "Received 401 Unauthorized for operation: \(operationID) - session expired")
             // Post notification on main thread so UI can respond
             await MainActor.run {
                 NotificationCenter.default.post(name: .sessionExpired, object: nil)

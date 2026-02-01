@@ -1,11 +1,16 @@
 import SwiftUI
 import Observation
 
+@MainActor
 @Observable
+/// Singleton that manages a queue of toast notifications displayed to the user.
 final class ToastManager {
+    /// Shared singleton instance.
     static let shared = ToastManager()
-    
+
+    /// The toast currently being displayed, if any.
     var currentToast: ToastMessage?
+    /// Whether a toast is currently visible.
     var isShowingToast = false
     
     private var toastQueue: [ToastMessage] = []
@@ -13,6 +18,7 @@ final class ToastManager {
     
     private init() {} // Private initializer for singleton
     
+    /// Enqueues a toast message with the given type.
     func showToast(_ message: String, type: ToastMessage.ToastType = .error) {
         let toast = ToastMessage(
             message: message,
@@ -32,6 +38,7 @@ final class ToastManager {
         }
     }
     
+    /// Displays the next queued toast, if any.
     private func processNextToast() {
         guard !toastQueue.isEmpty && !isShowingToast else { return }
         
@@ -47,6 +54,7 @@ final class ToastManager {
         }
     }
     
+    /// Dismisses the current toast and shows the next one in the queue.
     func hideToast() {
         isShowingToast = false
         currentToast = nil
@@ -58,23 +66,27 @@ final class ToastManager {
         }
     }
     
+    /// Convenience: shows an error toast.
     func showError(_ message: String) {
         showToast(message, type: .error)
     }
     
+    /// Convenience: shows a warning toast.
     func showWarning(_ message: String) {
         showToast(message, type: .warning)
     }
     
+    /// Convenience: shows a success toast.
     func showSuccess(_ message: String) {
         showToast(message, type: .success)
     }
     
+    /// Convenience: shows an informational toast.
     func showInfo(_ message: String) {
         showToast(message, type: .info)
     }
     
-    // Clear all pending toasts
+    /// Removes all pending toasts from the queue.
     func clearQueue() {
         toastQueue.removeAll()
         if isShowingToast {
@@ -82,7 +94,7 @@ final class ToastManager {
         }
     }
     
-    // Get queue status for debugging
+    /// The number of toasts waiting in the queue.
     var queueCount: Int {
         return toastQueue.count
     }

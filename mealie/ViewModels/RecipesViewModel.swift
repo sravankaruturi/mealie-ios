@@ -2,22 +2,32 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+@MainActor
 @Observable
+/// Manages recipe data synchronization between the Mealie server and the local SwiftData store.
 final class RecipesViewModel {
 
+    /// Whether a sync operation is currently in progress.
     var isSyncing: Bool = false
+    /// The most recent error message, if any.
     var error: String?
+    /// The SwiftData model context for persisting recipes locally.
     let modelContext: ModelContext
+    /// The API service used for server communication.
     let apiService: MealieAPIServiceProtocol
+    /// The current list of locally stored recipes.
     var recipes: [Recipe]
+    /// Timestamp of the most recent successful sync.
     var lastSyncTime: Date?
     
+    /// Creates a view model with the given model context and API service, loading any existing recipes.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext
         self.apiService = mealieAPIService
         self.recipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
     }
     
+    /// Debug helper to test JSON decoding against sample API responses.
     func testDecoding() {
 
         // Paste your full JSON response here as a multi-line string
@@ -128,26 +138,26 @@ final class RecipesViewModel {
             decoder.dateDecodingStrategy = .iso8601 // Assuming your date-time strings are ISO 8601
 
             let decodedResponse = try decoder.decode(Components.Schemas.PaginationBase_RecipeSummary_.self, from: Data(jsonString.utf8))
-            print("Successfully decoded response: \(decodedResponse.total) items")
+            AppLogger.debug(.network, "Successfully decoded response: \(decodedResponse.total) items")
         } catch DecodingError.keyNotFound(let key, let context) {
-            print("Decoding Error: Missing key '\(key.stringValue)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
-            print("Debug Description: \(context.debugDescription)")
+            AppLogger.error(.network, "Decoding Error: Missing key '\(key.stringValue)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+            AppLogger.debug(.network, "Debug Description: \(context.debugDescription)")
         } catch DecodingError.typeMismatch(let type, let context) {
-            print("Decoding Error: Type mismatch for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
-            print("Debug Description: \(context.debugDescription)")
+            AppLogger.error(.network, "Decoding Error: Type mismatch for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+            AppLogger.debug(.network, "Debug Description: \(context.debugDescription)")
         } catch DecodingError.valueNotFound(let type, let context) {
-            print("Decoding Error: Value not found for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
-            print("Debug Description: \(context.debugDescription)")
+            AppLogger.error(.network, "Decoding Error: Value not found for type '\(type)' at path '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+            AppLogger.debug(.network, "Debug Description: \(context.debugDescription)")
         } catch DecodingError.dataCorrupted(let context) {
-            print("Decoding Error: Data corrupted: \(context.debugDescription)")
-            print("Debug Description: \(context.underlyingError?.localizedDescription ?? "None")")
+            AppLogger.error(.network, "Decoding Error: Data corrupted: \(context.debugDescription)")
+            AppLogger.debug(.network, "Underlying error: \(context.underlyingError?.localizedDescription ?? "None")")
         } catch {
-            print("An unknown decoding error occurred: \(error)")
+            AppLogger.error(.network, "An unknown decoding error occurred: \(error)")
         }
         
     }
     
-    /// Check if we need to sync recipes based on last sync time
+    /// Returns `true` if recipes should be synced (empty, never synced, or stale beyond 5 minutes).
     func shouldSyncRecipes() -> Bool {
         // If we have no recipes, we definitely need to sync
         if recipes.isEmpty {
@@ -166,6 +176,7 @@ final class RecipesViewModel {
         return timeSinceLastSync > fiveMinutes
     }
     
+    /// Reconciles remote recipes with local storage: inserts new, updates changed, deletes removed.
     private func updateLocalStore(with remoteRecipes: [Recipe]) async {
         await MainActor.run {
             let localRecipes = self.recipes
@@ -239,7 +250,7 @@ final class RecipesViewModel {
             } catch {
                 let errorMessage = "Failed to sync recipes to the local database: \(error.localizedDescription)"
                 self.error = errorMessage
-                print(errorMessage)
+                AppLogger.error(.sync, errorMessage)
                 ToastManager.shared.showError(errorMessage)
                 return
             }
@@ -252,6 +263,7 @@ final class RecipesViewModel {
         }
     }
 
+    /// Performs an optimized sync, only fetching details for new or updated recipes.
     func syncRecipes() async {
         isSyncing = true
         error = nil
@@ -260,13 +272,14 @@ final class RecipesViewModel {
             // Use optimized fetching
             let remoteRecipes = try await apiService.fetchAllRecipesOptimized(existingRecipes: recipes)
             await updateLocalStore(with: remoteRecipes)
-            
+
         } catch {
             self.error = error.localizedDescription
-            print(self.error!)
+            AppLogger.error(.sync, "Recipe sync failed: \(error.localizedDescription)")
         }
     }
 
+    /// Performs a full sync, re-downloading all recipe details regardless of local state.
     func forceSyncRecipes() async {
         isSyncing = true
         error = nil
@@ -275,10 +288,10 @@ final class RecipesViewModel {
             // Fetch all recipes without optimization
             let remoteRecipes = try await apiService.fetchAllRecipes()
             await updateLocalStore(with: remoteRecipes)
-            
+
         } catch {
             self.error = error.localizedDescription
-            print(self.error!)
+            AppLogger.error(.sync, "Force sync failed: \(error.localizedDescription)")
         }
     }
 }

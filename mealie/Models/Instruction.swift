@@ -1,6 +1,7 @@
 import Foundation
 import SwiftData
 
+/// A single step in a recipe's instructions, stored in SwiftData.
 @Model
 final class Instruction {
     var id: String?
@@ -12,6 +13,7 @@ final class Instruction {
     @Relationship(inverse: \Recipe.instructions)
     var recipe: Recipe?
     
+    /// Creates an instruction with all properties.
     init(id: String? = nil, step: Int, text: String, title: String? = nil, recipe: Recipe? = nil) {
         self.id = id ?? UUID().uuidString
         self.step = step
@@ -20,7 +22,7 @@ final class Instruction {
         self.recipe = recipe
     }
     
-    // Default initializer for SwiftData
+    /// Default initializer required by SwiftData.
     init() {
         self.id = UUID().uuidString
         self.step = 0
@@ -30,6 +32,7 @@ final class Instruction {
     }
 
     // MARK: - Convenience Initializer for API Type
+    /// Creates an instruction from a Mealie API `RecipeStep` response.
     convenience init(from apiObject: Components.Schemas.RecipeStep, step: Int) {
         self.init(
             id: apiObject.id,

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Placeholder for ingredient editing sheet
+/// A custom keypad-based sheet for editing an ingredient's quantity, unit, and name.
 struct IngredientEditSheet: View {
     
     @Binding var ingredient: Ingredient
@@ -13,6 +13,7 @@ struct IngredientEditSheet: View {
     @State private var name: String = ""
     @State private var editingField: EditingField = .quantity
     
+    /// Tracks which ingredient field is currently being edited.
     enum EditingField { case quantity, unit, name }
     
 //    let units: [IngredientUnit] = [
@@ -146,6 +147,7 @@ struct IngredientEditSheet: View {
         }
     }
     
+    /// Applies the current quantity, unit, and name values and invokes the save callback.
     private func saveAndClose() {
         var updated = ingredient
         updated.quantity = Double(quantity) ?? 0
@@ -154,6 +156,7 @@ struct IngredientEditSheet: View {
         onSave(updated)
     }
     
+    /// Cycles the editing focus to the next field (quantity → unit → name → quantity).
     private func goToNextField() {
         switch editingField {
         case .quantity: editingField = .unit
@@ -164,6 +167,7 @@ struct IngredientEditSheet: View {
 }
 
 extension View {
+    /// Applies a standard keypad button style with configurable background and foreground colors.
     func ingredientPadButton(background: Color = Color(.systemGray5), foreground: Color = .primary) -> some View {
         self
             .font(.title2)
@@ -179,10 +183,10 @@ extension View {
         ingredient: .constant(Ingredient.sampleIngredient),
         availableUnits: [],
         onSave: { updated in
-            print("Saved ingredient: \(updated.name)")
+            AppLogger.debug(.recipes, "Saved ingredient: \(updated.name)")
         },
         onCancel: {
-            print("Cancelled editing")
+            AppLogger.debug(.recipes, "Cancelled editing")
         }
     )
 }

@@ -2,6 +2,7 @@ import Foundation
 import OpenAPIRuntime
 import OpenAPIURLSession
 
+/// Concrete Mealie API client using OpenAPI-generated transport.
 final class MealieAPIService: MealieAPIServiceProtocol {
     
     private(set) var serverURL: URL?
@@ -11,6 +12,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     
     var client: Client?
     
+    /// Creates the API service, optionally connecting to the given server URL.
+    /// - Parameter serverURL: The initial server URL, or `nil` to configure later.
     init(serverURL: URL?) {
 
         let config = URLSessionConfiguration.default
@@ -22,6 +25,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
 
     }
     
+    /// Reconfigures the HTTP client with a new server URL and authentication middleware.
+    /// - Parameter url: The new base URL for the Mealie server.
     public func setURL(_ url: URL) {
         self.serverURL = url
         self.client = Client(
@@ -32,6 +37,12 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     }
     
     // MARK: - Authentication
+    /// Authenticates with username/password and stores the token in Keychain.
+    /// - Parameters:
+    ///   - username: The user's login name.
+    ///   - password: The user's password.
+    /// - Returns: The access token string.
+    /// - Throws: `MealieAPIError` on failure (unauthorized, network, decoding).
     func login(username: String, password: String) async throws -> String {
         
         let requestBody = Components.Schemas.Body_get_token_api_auth_token_post(
@@ -85,24 +96,26 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                 }
             }
         } catch let error as URLError {
-            print("🌐 MealieAPIService: URLError occurred: \(error)")
-            print("🌐 MealieAPIService: URLError code: \(error.code)")
+            AppLogger.error(.network, "URLError occurred: \(error)")
+            AppLogger.debug(.network, "URLError code: \(error.code)")
             if error.code == .appTransportSecurityRequiresSecureConnection || error.code == .serverCertificateUntrusted {
                 throw MealieAPIError.insecureConnection
             }
             throw MealieAPIError.networkError(error)
         } catch let error as DecodingError {
-            print("🌐 MealieAPIService: DecodingError occurred: \(error)")
+            AppLogger.error(.network, "DecodingError occurred: \(error)")
             throw MealieAPIError.decodingError(error)
         } catch {
-            print("🌐 MealieAPIService: Unknown error occurred: \(error)")
-            print("🌐 MealieAPIService: Error type: \(type(of: error))")
+            AppLogger.error(.network, "Unknown error occurred: \(error)")
+            AppLogger.debug(.network, "Error type: \(type(of: error))")
             // Catches decoding errors or other issues.
             throw MealieAPIError.networkError(error)
         }
     
     }
     
+    /// Fetches user details and converts to the local `User` model.
+    /// - Returns: A `User` representing the authenticated user.
     func fetchUserDetails() async throws -> User {
         
         let userDetails = try await getCurrentUser()
@@ -111,6 +124,11 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     }
     
     // MARK: - Recipes
+    /// Fetches all recipe summaries then downloads full details for each (N+1 calls).
+    /// - Parameters:
+    ///   - page: The page number to fetch (default 1).
+    ///   - perPage: The number of recipes per page (default 50).
+    /// - Returns: An array of fully-detailed `Recipe` objects.
     func fetchAllRecipes(page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
 
         guard let client = client else {
@@ -146,7 +164,12 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         
     }
     
-    /// Optimized recipe fetching that only downloads full details for updated recipes
+    /// Smart sync: only downloads details for new or updated recipes.
+    /// - Parameters:
+    ///   - existingRecipes: Locally cached recipes to compare timestamps against.
+    ///   - page: The page number to fetch (default 1).
+    ///   - perPage: The number of recipes per page (default 50).
+    /// - Returns: An array of `Recipe` objects with only changed ones re-fetched from the server.
     func fetchAllRecipesOptimized(existingRecipes: [Recipe], page: Int = 1, perPage: Int = 50) async throws -> [Recipe] {
 
         guard let client = client else {
@@ -194,7 +217,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                         cachedCount += 1
                     } else {
                         // Recipe has been updated, fetch full details
-                        print("Fetching updated recipe: \(existingRecipe.name ?? "Unknown") (server: \(recipeSummary.dateUpdated ?? "nil"), local: \(existingRecipe.dateUpdated ?? "nil"))")
+                        AppLogger.debug(.sync, "Fetching updated recipe: \(existingRecipe.name ?? "Unknown") (server: \(recipeSummary.dateUpdated ?? "nil"), local: \(existingRecipe.dateUpdated ?? "nil"))")
                         let updatedRecipe = try await fetchRecipeDetails(slug: slug)
                         // Preserve favorite state
                         updatedRecipe.isFavorite = existingRecipe.isFavorite
@@ -203,14 +226,14 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                     }
                 } else {
                     // New recipe, fetch full details
-                    print("Fetching new recipe: \(recipeSummary.name ?? "Unknown")")
+                    AppLogger.debug(.sync, "Fetching new recipe: \(recipeSummary.name ?? "Unknown")")
                     let newRecipe = try await fetchRecipeDetails(slug: slug)
                     updatedRecipes.append(newRecipe)
                     newCount += 1
                 }
             }
             
-            print("📊 Recipe sync stats: \(cachedCount) cached, \(fetchedCount) updated, \(newCount) new")
+            AppLogger.info(.sync, "Recipe sync stats: \(cachedCount) cached, \(fetchedCount) updated, \(newCount) new")
             
             return updatedRecipes
             
@@ -253,6 +276,9 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         return timestamp
     }
     
+    /// Fetches full recipe details for a single recipe by slug.
+    /// - Parameter slug: The recipe's URL slug identifier.
+    /// - Returns: A fully-detailed `Recipe` object.
     func fetchRecipeDetails(slug: String) async throws -> Recipe {
         // GET /api/recipes/{recipe_slug}
         guard let client = client else {
@@ -276,6 +302,9 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
+    /// Creates a blank recipe with the given name, returns its slug.
+    /// - Parameter recipeName: The name for the new recipe.
+    /// - Returns: The generated slug of the newly created recipe.
     func addRecipeManual(recipeName: String) async throws -> String {
 
         // POST /api/recipes
@@ -300,6 +329,9 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         
     }
     
+    /// Sends a URL to the server for scraping, returns the generated slug.
+    /// - Parameter url: The recipe URL to scrape.
+    /// - Returns: The slug of the newly created recipe.
     func parseRecipeURL(url: URL) async throws -> String {
         // POST /api/recipes/create/url
         guard let client = client else {
@@ -326,6 +358,9 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
+    /// Scrapes a recipe URL and returns the full Recipe object.
+    /// - Parameter url: The recipe URL to scrape.
+    /// - Returns: The complete `Recipe` object fetched after scraping.
     func addRecipeFromURL(url: URL) async throws -> Recipe {
         // First parse the URL to get the recipe slug
         let recipeSlug = try await parseRecipeURL(url: url)
@@ -336,32 +371,27 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         return recipe
     }
     
+    /// Pushes updated recipe data to the server via PUT.
+    /// - Parameters:
+    ///   - slug: The recipe's URL slug identifier.
+    ///   - recipeData: The full recipe input payload to send.
     func updateRecipe(slug: String, recipeData: Components.Schemas.Recipe_hyphen_Input) async throws {
         // PUT /api/recipes/{slug}
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
         }
         
-        print("🌐 MealieAPIService: Updating recipe with slug: \(slug)")
-        print("🌐 MealieAPIService: Recipe data ID: \(recipeData.id ?? "nil")")
-        print("🌐 MealieAPIService: Recipe data name: \(recipeData.name ?? "nil")")
-        print("🌐 MealieAPIService: Recipe data userId: \(recipeData.userId)")
-        print("🌐 MealieAPIService: Recipe data householdId: \(recipeData.householdId)")
-        print("🌐 MealieAPIService: Recipe data groupId: \(recipeData.groupId)")
-        print("🌐 MealieAPIService: Recipe data ingredients count: \(recipeData.recipeIngredient?.count)")
-        print("🌐 MealieAPIService: Recipe data instructions count: \(recipeData.recipeInstructions?.count)")
-        
-        // Log the request body for debugging
+        AppLogger.debug(.network, "Updating recipe with slug: \(slug)")
+        AppLogger.debug(.network, "Recipe data - ID: \(recipeData.id ?? "nil"), name: \(recipeData.name ?? "nil")")
+        AppLogger.debug(.network, "Recipe data - userId: \(recipeData.userId), householdId: \(recipeData.householdId), groupId: \(recipeData.groupId)")
+        AppLogger.debug(.network, "Recipe data - ingredients: \(recipeData.recipeIngredient?.count ?? 0), instructions: \(recipeData.recipeInstructions?.count ?? 0)")
+
+        // Log request metadata for debugging (avoid logging full payload to prevent PII leakage)
         do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let jsonData = try encoder.encode(recipeData)
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                print("🌐 MealieAPIService: Request body:")
-                print(jsonString)
-            }
+            let jsonData = try JSONEncoder().encode(recipeData)
+            AppLogger.debug(.network, "Request body size: \(jsonData.count) bytes")
         } catch {
-            print("🌐 MealieAPIService: Could not encode request body for logging: \(error)")
+            AppLogger.warning(.network, "Could not encode request body for logging: \(error)")
         }
         
         let input = Operations.update_one_api_recipes__slug__put.Input(
@@ -369,33 +399,32 @@ final class MealieAPIService: MealieAPIServiceProtocol {
             body: .json(recipeData)
         )
         
-        print("🌐 MealieAPIService: Making API request...")
-        
+        AppLogger.debug(.network, "Making API request to update recipe...")
+
         let output = try await client.update_one_api_recipes__slug__put(input)
-        
-        print("🌐 MealieAPIService: Received response")
-        
+
+        AppLogger.debug(.network, "Received response for recipe update")
+
         switch output {
         case .ok:
-            print("🌐 MealieAPIService: Recipe updated successfully")
+            AppLogger.info(.network, "Recipe updated successfully")
             // Successfully updated
             break
         case .unprocessableContent(let response):
-            print("🌐 MealieAPIService: Validation error: \(response)")
+            AppLogger.error(.network, "Validation error (unprocessable content)")
+            AppLogger.debug(.network, "Validation details: \(response)")
             throw MealieAPIError.custom("Validation Error: \(response)")
         case .undocumented(let statusCode, let response):
-            print("🌐 MealieAPIService: Undocumented status code: \(statusCode)")
-            print("🌐 MealieAPIService: Response: \(response)")
-            
+            AppLogger.error(.network, "Undocumented status code: \(statusCode)")
+            AppLogger.debug(.network, "Response: \(response)")
+
             // Try to extract error message from response body
             if let responseBody = response.body {
                 do {
                     let data = try await responseBody.reduce(into: Data()) { $0.append(contentsOf: $1) }
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("🌐 MealieAPIService: Response body: \(jsonString)")
-                    }
+                    AppLogger.debug(.network, "Response body size: \(data.count) bytes")
                 } catch {
-                    print("🌐 MealieAPIService: Could not read response body: \(error)")
+                    AppLogger.warning(.network, "Could not read response body: \(error)")
                 }
             }
             
@@ -410,12 +439,19 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     }
     
     // MARK: - Meal Plan
+    /// Creates a meal plan entry (not yet implemented).
+    /// - Parameter entryData: Dictionary containing the meal plan entry fields.
     func createMealPlanEntry(entryData: [String: Any]) async throws {
         // POST /api/meal-plans
         throw MealieAPIError.custom("Not implemented")
     }
     
     // MARK: - Images
+    /// Builds the media URL for a recipe image.
+    /// - Parameters:
+    ///   - recipeId: The recipe's unique identifier.
+    ///   - imageType: The desired image size variant (default `.original`).
+    /// - Returns: The fully-qualified image URL, or `nil` if the server URL is not set.
     func getRecipeImageURL(recipeId: String, imageType: ImageType = .original) -> URL? {
         guard let serverURL = serverURL else { return nil }
         return serverURL.appendingPathComponent("api/media/recipes/\(recipeId)/images/\(imageType.rawValue)")
@@ -447,11 +483,18 @@ final class MealieAPIService: MealieAPIServiceProtocol {
 //    }
     
     // MARK: - Kingfisher Integration
+    /// Convenience wrapper for Kingfisher image loading.
+    /// - Parameters:
+    ///   - recipeId: The recipe's unique identifier.
+    ///   - imageType: The desired image size variant (default `.original`).
+    /// - Returns: The image URL suitable for Kingfisher, or `nil` if unavailable.
     func getRecipeImageURLForKingfisher(recipeId: String, imageType: ImageType = .original) -> URL? {
         return getRecipeImageURL(recipeId: recipeId, imageType: imageType)
     }
     
     // MARK: - Favorites
+    /// Fetches the logged-in user's profile via GET /api/users/self.
+    /// - Returns: The raw `UserOut` schema from the server.
     func getCurrentUser() async throws -> Components.Schemas.UserOut {
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
@@ -471,6 +514,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
+    /// Adds a recipe to the current user's favorites.
+    /// - Parameter recipeSlug: The slug of the recipe to favorite.
     func addToFavorites(recipeSlug: String) async throws {
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
@@ -497,6 +542,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
+    /// Removes a recipe from the current user's favorites.
+    /// - Parameter recipeSlug: The slug of the recipe to unfavorite.
     func removeFromFavorites(recipeSlug: String) async throws {
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
@@ -523,6 +570,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
+    /// Fetches the current user's favorites and ratings list.
+    /// - Returns: The user's ratings/favorites summary from the server.
     func getCurrentUserFavorites() async throws -> Components.Schemas.UserRatings_UserRatingSummary_ {
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
@@ -540,33 +589,34 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         }
     }
     
-    /// Sync favorites from server to local recipes
+    /// Downloads favorite state from server and updates local Recipe models.
+    /// - Parameter recipes: The local recipe models whose favorite flags will be updated.
     func syncFavoritesFromServer(recipes: [Recipe]) async throws {
-        print("🔄 Starting favorites sync...")
+        AppLogger.debug(.sync, "Starting favorites sync...")
         let serverFavorites = try await getCurrentUserFavorites()
-        
-        print("📊 Server favorites response: \(serverFavorites.ratings.count) ratings")
-//        
-        // Debug: Print the structure of the first rating to understand the data
+
+        AppLogger.debug(.sync, "Server favorites response: \(serverFavorites.ratings.count) ratings")
+
+        // Debug: Log the structure of the first rating to understand the data
         if let firstRating = serverFavorites.ratings.first {
-            print("🔍 First rating structure: \(firstRating)")
+            AppLogger.debug(.sync, "First rating structure: \(firstRating)")
         }
-        
+
         // Create a set of favorite recipe slugs from server
         let serverFavoriteIds = Set<String>(serverFavorites.ratings.compactMap { rating -> String? in
-            
+
             guard let isFav = rating.isFavorite, isFav else {
                 return nil
             }
-            
+
             // Try different possible field names for the recipe identifier
             let recipeId = rating.recipeId
-            print("❤️ Found favorite recipe: \(recipeId)")
+            AppLogger.debug(.sync, "Found favorite recipe: \(recipeId)")
             return recipeId
         })
-        
-        print("📋 Server favorite ids: \(serverFavoriteIds)")
-        print("📋 Local recipe ids: \(recipes.map { $0.remoteId })")
+
+        AppLogger.debug(.sync, "Server favorite ids: \(serverFavoriteIds)")
+        AppLogger.debug(.sync, "Local recipe ids: \(recipes.map { $0.remoteId })")
         
         var updatedCount = 0
         
@@ -578,22 +628,26 @@ final class MealieAPIService: MealieAPIServiceProtocol {
                 if recipe.isFavorite != shouldBeFavorite {
                     recipe.isFavorite = shouldBeFavorite
                     updatedCount += 1
-                    print("🔄 Updated recipe '\(recipe.name ?? "Unknown")' favorite state to: \(shouldBeFavorite)")
+                    AppLogger.debug(.sync, "Updated recipe '\(recipe.name ?? "Unknown")' favorite state to: \(shouldBeFavorite)")
                 }
             }
         }
         
-        print("✅ Synced Favourites: \(updatedCount) recipes updated")
+        AppLogger.info(.sync, "Synced favourites: \(updatedCount) recipes updated")
     }
     
 
     
     // MARK: - Delete
+    /// Deletes a recipe (not yet implemented).
+    /// - Parameter slug: The recipe's URL slug identifier.
     func deleteRecipe(slug: String) async throws {
         // DELETE /api/recipes/{recipe_slug}
         throw MealieAPIError.custom("Not implemented")
     }
     
+    /// Fetches all ingredient units in a single request.
+    /// - Returns: An array of ingredient unit schemas.
     func fetchAllUnits() async throws -> [Components.Schemas.IngredientUnit_hyphen_Output] {
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")
@@ -613,6 +667,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     }
     
     // MARK: - Foods
+    /// Fetches all ingredient food items in a single request.
+    /// - Returns: An array of ingredient food schemas.
     func fetchAllFoods() async throws -> [Components.Schemas.IngredientFood_hyphen_Output] {
         guard let client = client else {
             throw MealieAPIError.custom("Client not initialized")

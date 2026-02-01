@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A banner prompting the user to import a recipe URL detected on their clipboard.
 struct PasteboardImportBanner: View {
     let onImport: () -> Void
     let onDismiss: () -> Void

@@ -33,7 +33,7 @@ A comprehensive list of planned improvements and features for the app.
   - `MealieAPIService.swift`
   - `RecipesViewModel.swift`
 
-- [ ] **M2: Replace Print Statements with Proper Logging** - Replace 121 `print()` calls with structured logging using os.Logger
+- [x] **M2: Replace Print Statements with Proper Logging** - Replace 129 `print()` calls with structured logging using os.Logger
   - All service and view model files
 
 - [ ] **M3: Offline Support** - Implement offline-first architecture with local mutation queue and background sync

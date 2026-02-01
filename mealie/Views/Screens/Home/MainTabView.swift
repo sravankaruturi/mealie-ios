@@ -1,10 +1,11 @@
 import SwiftUI
 import SwiftData
 
+/// Wrapper view that injects the model context into the tab body.
 struct MainTabView: View {
-    
+
     @Environment(\.modelContext) var modelContext
-    
+
     var mealieAPIService: MealieAPIServiceProtocol
     
     var body: some View {
@@ -12,10 +13,12 @@ struct MainTabView: View {
     }
 } 
 
+/// The main tab bar with Home, Recipes, and Profile tabs. Triggers an initial recipe sync on appear.
 struct MainTabBodyView : View {
-    
+
     var mealieAPIService: MealieAPIServiceProtocol
-    
+
+    /// Creates the tab body, initializing the shared `RecipesViewModel`.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.mealieAPIService = mealieAPIService
         self.recipesViewModel = .init(modelContext: modelContext, mealieAPIService: mealieAPIService)
@@ -45,7 +48,7 @@ struct MainTabBodyView : View {
                 if self.recipesViewModel.shouldSyncRecipes() {
                     await self.recipesViewModel.syncRecipes()
                 } else {
-                    print("📱 Skipping recipe sync - last sync was recent")
+                    AppLogger.debug(.sync, "Skipping recipe sync - last sync was recent")
                 }
             }
         }
