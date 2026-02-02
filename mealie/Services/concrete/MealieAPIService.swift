@@ -33,7 +33,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         self.serverURL = url
         self.client = Client(
             serverURL: url,
-            transport: URLSessionTransport(),
+            transport: URLSessionTransport(configuration: .init(session: self.session)),
             middlewares: [self.authMiddleware]
         )
     }
