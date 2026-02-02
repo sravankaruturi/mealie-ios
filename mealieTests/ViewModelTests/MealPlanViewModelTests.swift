@@ -68,6 +68,74 @@ struct MealPlanViewModelTests {
         #expect(list.isEmpty)
     }
 
+    // MARK: - Offline-First / createMealPlanEntry Tests
+
+    @Test
+    func createMealPlanEntry_savesLocally() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let vm = MealPlanViewModel(apiService: api, modelContext: ctx)
+
+        let recipe = makeTestRecipe(name: "Tacos", slug: "tacos")
+        ctx.insert(recipe)
+
+        await vm.createMealPlanEntry(date: Date(), mealType: "dinner", recipe: recipe)
+
+        let entries = (try? ctx.fetch(FetchDescriptor<MealPlanEntry>())) ?? []
+        #expect(entries.count == 1)
+        #expect(entries.first?.mealType == "dinner")
+    }
+
+    @Test
+    func createMealPlanEntry_enqueuesSyncWhenOffline() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = false
+        let syncMgr = SyncManager(apiService: api, modelContext: ctx, networkMonitor: monitor)
+        let vm = MealPlanViewModel(apiService: api, modelContext: ctx)
+        vm.syncManager = syncMgr
+        vm.networkMonitor = monitor
+
+        let recipe = makeTestRecipe(name: "Soup", slug: "soup")
+        ctx.insert(recipe)
+
+        await vm.createMealPlanEntry(date: Date(), mealType: "lunch", recipe: recipe)
+
+        // Entry saved locally
+        let entries = (try? ctx.fetch(FetchDescriptor<MealPlanEntry>())) ?? []
+        #expect(entries.count == 1)
+
+        // API was not called (offline)
+        #expect(api.createMealPlanEntryCallCount == 0)
+
+        // Pending operation was enqueued
+        let ops = (try? ctx.fetch(FetchDescriptor<PendingOperation>())) ?? []
+        #expect(ops.count == 1)
+        #expect(ops.first?.operationType == PendingOperationType.createMealPlan.rawValue)
+    }
+
+    @Test
+    func createMealPlanEntry_syncsWhenOnline() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = true
+        let vm = MealPlanViewModel(apiService: api, modelContext: ctx)
+        vm.networkMonitor = monitor
+
+        let recipe = makeTestRecipe(name: "Pizza", slug: "pizza")
+        ctx.insert(recipe)
+
+        await vm.createMealPlanEntry(date: Date(), mealType: "dinner", recipe: recipe)
+
+        #expect(api.createMealPlanEntryCallCount == 1)
+
+        // Entry should be marked synced
+        let entries = (try? ctx.fetch(FetchDescriptor<MealPlanEntry>())) ?? []
+        #expect(entries.first?.isSynced == true)
+    }
+
     @Test
     func generateShoppingList_multipleIngredientsPerRecipe() {
         let ctx = makeTestModelContext()

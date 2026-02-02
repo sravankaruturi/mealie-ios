@@ -17,8 +17,7 @@ final class RecipesViewModel {
     let apiService: MealieAPIServiceProtocol
     /// The current list of locally stored recipes.
     var recipes: [Recipe]
-    /// Timestamp of the most recent successful sync.
-    var lastSyncTime: Date?
+    /// Timestamp of the most recent successful sync (persisted via ``SyncMetadata``).
     
     /// Creates a view model with the given model context and API service, loading any existing recipes.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
@@ -163,16 +162,16 @@ final class RecipesViewModel {
         if recipes.isEmpty {
             return true
         }
-        
+
         // If we've never synced, we need to sync
-        guard let lastSync = lastSyncTime else {
+        guard let lastSync = SyncMetadata.lastSyncTime(in: modelContext) else {
             return true
         }
-        
+
         // Check if it's been more than 5 minutes since last sync
         let timeSinceLastSync = Date().timeIntervalSince(lastSync)
         let fiveMinutes: TimeInterval = 5 * 60
-        
+
         return timeSinceLastSync > fiveMinutes
     }
     
@@ -184,7 +183,8 @@ final class RecipesViewModel {
             let localRecipesDict = Dictionary(uniqueKeysWithValues: localRecipes.map { ($0.remoteId, $0) })
             
             // Identify recipes to delete, update, and insert
-            let recipesToDelete = localRecipes.filter { remoteRecipesDict[$0.remoteId] == nil }
+            // Skip deletion of recipes that have unsynchronized local changes
+            let recipesToDelete = localRecipes.filter { remoteRecipesDict[$0.remoteId] == nil && !$0.hasLocalChanges }
             let recipesToInsert = remoteRecipes.filter { localRecipesDict[$0.remoteId] == nil }
             let recipesToUpdate = remoteRecipes.filter { localRecipesDict[$0.remoteId] != nil }
             
@@ -198,9 +198,14 @@ final class RecipesViewModel {
                 modelContext.insert(recipe)
             }
             
-            // Perform updates
+            // Perform updates — skip recipes with unsynchronized local changes
             for remoteRecipe in recipesToUpdate {
                 if let localRecipe = localRecipesDict[remoteRecipe.remoteId] {
+                    // Protect locally-edited recipes from being overwritten
+                    if localRecipe.hasLocalChanges {
+                        AppLogger.info(.sync, "Skipping update for \(localRecipe.slug) — has local changes")
+                        continue
+                    }
                     // Update properties
                     localRecipe.name = remoteRecipe.name
                     localRecipe.slug = remoteRecipe.slug
@@ -258,8 +263,8 @@ final class RecipesViewModel {
             // Update the view model's recipe list to reflect the latest state
             let finalRecipes = (try? modelContext.fetch(FetchDescriptor<Recipe>())) ?? []
             self.recipes = finalRecipes
-            
-            self.lastSyncTime = Date()
+
+            SyncMetadata.setLastSyncTime(Date(), in: self.modelContext)
         }
     }
 

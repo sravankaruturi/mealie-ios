@@ -24,36 +24,61 @@ struct RecipesViewModelTests {
 
     @Test
     func shouldSync_neverSynced_returnsTrue() {
-        let (vm, _) = makeVM()
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let vm = RecipesViewModel(modelContext: ctx, mealieAPIService: api)
         // Manually add a recipe to the array (not from DB)
         vm.recipes = [makeTestRecipe()]
-        vm.lastSyncTime = nil
+        // No SyncMetadata set → never synced
         #expect(vm.shouldSyncRecipes() == true)
     }
 
     @Test
     func shouldSync_recentSync_returnsFalse() {
-        let (vm, _) = makeVM()
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let vm = RecipesViewModel(modelContext: ctx, mealieAPIService: api)
         vm.recipes = [makeTestRecipe()]
-        vm.lastSyncTime = Date().addingTimeInterval(-60) // 1 minute ago
+        SyncMetadata.setLastSyncTime(Date().addingTimeInterval(-60), in: ctx) // 1 minute ago
         #expect(vm.shouldSyncRecipes() == false)
     }
 
     @Test
     func shouldSync_staleSync_returnsTrue() {
-        let (vm, _) = makeVM()
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let vm = RecipesViewModel(modelContext: ctx, mealieAPIService: api)
         vm.recipes = [makeTestRecipe()]
-        vm.lastSyncTime = Date().addingTimeInterval(-360) // 6 minutes ago
+        SyncMetadata.setLastSyncTime(Date().addingTimeInterval(-360), in: ctx) // 6 minutes ago
         #expect(vm.shouldSyncRecipes() == true)
     }
 
     @Test
     func shouldSync_justUnderFiveMinutes_returnsFalse() {
-        let (vm, _) = makeVM()
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let vm = RecipesViewModel(modelContext: ctx, mealieAPIService: api)
         vm.recipes = [makeTestRecipe()]
-        vm.lastSyncTime = Date().addingTimeInterval(-299) // just under 5 minutes
-        // The code uses `> fiveMinutes`, so under 5 minutes returns false
+        SyncMetadata.setLastSyncTime(Date().addingTimeInterval(-299), in: ctx) // just under 5 minutes
         #expect(vm.shouldSyncRecipes() == false)
+    }
+
+    // MARK: - Offline Protection Tests
+
+    @Test
+    func syncRecipes_usesPersistedLastSyncTime() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let vm = RecipesViewModel(modelContext: ctx, mealieAPIService: api)
+        vm.recipes = [makeTestRecipe()]
+
+        // Set a recent sync time → should NOT sync
+        SyncMetadata.setLastSyncTime(Date().addingTimeInterval(-60), in: ctx)
+        #expect(vm.shouldSyncRecipes() == false)
+
+        // Set a stale sync time → should sync
+        SyncMetadata.setLastSyncTime(Date().addingTimeInterval(-400), in: ctx)
+        #expect(vm.shouldSyncRecipes() == true)
     }
 
     // MARK: - Async Sync Tests

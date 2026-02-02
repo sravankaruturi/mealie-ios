@@ -20,7 +20,9 @@ struct mealieApp: App {
             Ingredient.self,
             Instruction.self,
             Tag.self,
-            MealPlanEntry.self
+            MealPlanEntry.self,
+            PendingOperation.self,
+            SyncMetadata.self
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -60,12 +62,24 @@ struct mealieApp: App {
     }()
     
     @State private var appState = AppState()
-    
+    @State private var syncManager: SyncManager?
+
     var body: some Scene {
-        
+
         WindowGroup {
             ContentView(mealieAPIService: appState.mealieAPIService, authState: appState.authState)
                 .environment(appState.authState)
+                .environment(appState.networkMonitor)
+                .task {
+                    if syncManager == nil {
+                        let context = ModelContext(sharedModelContainer)
+                        syncManager = SyncManager(
+                            apiService: appState.mealieAPIService,
+                            modelContext: context,
+                            networkMonitor: appState.networkMonitor
+                        )
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
     }
@@ -81,12 +95,16 @@ final class AppState {
     let authService: AuthenticationServiceProtocol
     /// The observable authentication state shared across the app.
     let authState: AuthenticationState
+    /// Monitors network connectivity and notifies on reconnection.
+    let networkMonitor: NetworkMonitor
 
     /// Initializes the service graph with default concrete implementations.
     init() {
         self.mealieAPIService = MealieAPIService(serverURL: nil)
         self.authService = AuthenticationService(mealieAPIService: mealieAPIService)
         self.authState = AuthenticationState(authService: authService)
+        self.networkMonitor = NetworkMonitor()
+        self.networkMonitor.start()
     }
 
 }

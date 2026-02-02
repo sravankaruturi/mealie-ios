@@ -17,33 +17,40 @@ struct MainTabView: View {
 struct MainTabBodyView : View {
 
     var mealieAPIService: MealieAPIServiceProtocol
+    @Environment(NetworkMonitor.self) private var networkMonitor: NetworkMonitor?
 
     /// Creates the tab body, initializing the shared `RecipesViewModel`.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.mealieAPIService = mealieAPIService
         self.recipesViewModel = .init(modelContext: modelContext, mealieAPIService: mealieAPIService)
     }
-    
+
     @State var recipesViewModel: RecipesViewModel
-    
+
     var body: some View {
-        
-        TabView {
-            HomeView(mealieAPIService: self.mealieAPIService)
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
-            RecipeListView(mealieAPIService: self.mealieAPIService, recipesViewModel: recipesViewModel)
-                .tabItem {
-                    Label("Recipes", systemImage: "book")
-                }
-            ProfileView(recipesViewModel: recipesViewModel, mealieAPIService: self.mealieAPIService)
-                .tabItem {
-                    Label("Profile", systemImage: "person")
-                }
+
+        VStack(spacing: 0) {
+            if let networkMonitor {
+                OfflineBanner(networkMonitor: networkMonitor)
+                    .animation(.easeInOut, value: networkMonitor.isConnected)
+            }
+
+            TabView {
+                HomeView(mealieAPIService: self.mealieAPIService)
+                    .tabItem {
+                        Label("Home", systemImage: "house")
+                    }
+                RecipeListView(mealieAPIService: self.mealieAPIService, recipesViewModel: recipesViewModel)
+                    .tabItem {
+                        Label("Recipes", systemImage: "book")
+                    }
+                ProfileView(recipesViewModel: recipesViewModel, mealieAPIService: self.mealieAPIService)
+                    .tabItem {
+                        Label("Profile", systemImage: "person")
+                    }
+            }
         }
         .onAppear() {
-//            AppLogger.logRecipes(recipesViewModel.recipes, context: "MainTabView onAppear")
             Task {
                 if self.recipesViewModel.shouldSyncRecipes() {
                     await self.recipesViewModel.syncRecipes()
@@ -52,7 +59,7 @@ struct MainTabBodyView : View {
                 }
             }
         }
-        
+
     }
-    
+
 }

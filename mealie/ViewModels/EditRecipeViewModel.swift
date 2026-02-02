@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+@MainActor
 @Observable
 /// Manages the editing state and server synchronization for a single recipe.
 class EditRecipeViewModel {
@@ -10,6 +11,11 @@ class EditRecipeViewModel {
     private let recipe: Recipe
     private let user: User
     var modelContext: ModelContext
+
+    /// Optional sync manager for enqueueing operations when offline.
+    var syncManager: SyncManager?
+    /// Optional network monitor for checking connectivity before API calls.
+    var networkMonitor: NetworkMonitor?
 
     /// Whether a save operation is in progress.
     var isLoading = false
@@ -67,12 +73,15 @@ class EditRecipeViewModel {
         
     }
     
-    /// Validates, saves locally, and pushes changes to the Mealie server.
+    /// Validates, saves locally first, then attempts to push changes to the Mealie server.
+    ///
+    /// If the device is offline or the API call fails, the local changes are preserved
+    /// and a ``PendingOperation`` is enqueued for later synchronization.
     func saveRecipe(isNew: Bool = false) async {
-        
+
         isLoading = true
         error = nil
-        
+
         // Declare all variables at the function level to avoid scope issues
         var recipeName: String = ""
         var recipeSlug: String = ""
@@ -88,66 +97,49 @@ class EditRecipeViewModel {
         var updateAt: String = ""
         var apiIngredients: [Components.Schemas.RecipeIngredient_hyphen_Input] = []
         var apiInstructions: [Components.Schemas.RecipeStep] = []
-        
+
         do {
-            // Debug logging
-            AppLogger.debug(.recipes, "Starting recipe update for slug: \(recipe.slug)")
-            AppLogger.debug(.recipes, "Recipe ID: \(recipe.remoteId)")
-            AppLogger.debug(.recipes, "User ID: \(recipe.userId)")
-            AppLogger.debug(.recipes, "Group ID: \(recipe.groupId)")
-            AppLogger.debug(.recipes, "Household ID: \(recipe.houseHoldId)")
-            AppLogger.debug(.recipes, "Name: \(name)")
-            AppLogger.debug(.recipes, "Slug: \(slug)")
-            AppLogger.debug(.recipes, "OrgURL: \(orgURL)")
-            AppLogger.debug(.recipes, "Description: \(description)")
-            AppLogger.debug(.recipes, "Servings: \(servings)")
-            AppLogger.debug(.recipes, "Ingredients count: \(ingredients.count)")
-            AppLogger.debug(.recipes, "Instructions count: \(instructions.count)")
-            
+            AppLogger.debug(.recipes, "Starting recipe save for slug: \(recipe.slug)")
+
             // Filter out empty ingredients and validate data
             let validIngredients = ingredients.filter { ingredient in
                 !ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                // Removed quantity > 0 check as some ingredients might have 0 quantity but still be valid
             }
-            
+
             let validInstructions = instructions.filter { instruction in
                 !instruction.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             }
-            
+
             // Additional validation: clean ingredient names
             let cleanedIngredients = validIngredients.map { ingredient in
                 var cleaned = ingredient
-                // Remove any special characters or formatting that might cause issues
                 cleaned.name = ingredient.name
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                     .replacingOccurrences(of: "\n", with: " ")
                     .replacingOccurrences(of: "\r", with: " ")
                 return cleaned
             }
-            
-            AppLogger.debug(.recipes, "Valid ingredients count: \(validIngredients.count)")
-            AppLogger.debug(.recipes, "Valid instructions count: \(validInstructions.count)")
-            
+
             // Ensure recipe name is not empty
             recipeName = name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Recipe" : name
             recipeSlug = slug.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? UUID().uuidString : slug
             recipeOrgURL = orgURL.isEmpty ? nil : orgURL
-            
+
             // Clean up text fields to remove problematic characters
             cleanDescription = description
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .replacingOccurrences(of: "\n", with: " ")
                 .replacingOccurrences(of: "\r", with: " ")
-            
+
             cleanYield = yield
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .replacingOccurrences(of: "\n", with: " ")
                 .replacingOccurrences(of: "\r", with: " ")
-            
+
             finalUserId = !recipe.userId.isEmpty ? recipe.userId : user.id
             finalGroupId = recipe.groupId.isEmpty ? user.groupId : recipe.groupId
             finalHouseholdId = recipe.houseHoldId.isEmpty ? user.householdId : recipe.houseHoldId
-            
+
             // Validate critical fields
             guard !finalUserId.isEmpty else {
                 throw MealieAPIError.custom("User ID is required")
@@ -158,38 +150,33 @@ class EditRecipeViewModel {
             guard !finalHouseholdId.isEmpty else {
                 throw MealieAPIError.custom("Household ID is required")
             }
-            
+
             // Ensure date fields are properly formatted
             let currentDate = getDateStringForAPI(Date())
             dateAdded = recipe.dateAdded?.isEmpty == false ? recipe.dateAdded! : currentDate
             dateUpdated = currentDate
             createdAt = recipe.createdAt?.isEmpty == false ? recipe.createdAt! : currentDate
             updateAt = currentDate
-            
+
             apiIngredients = cleanedIngredients.map { ingredient in
                 let cleanName = ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                
+
                 var unitPayload: Components.Schemas.RecipeIngredient_hyphen_Input.unitPayload?
                 let unitNameLowercased = ingredient.unit.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
-                // Find a matching unit from the fetched list
                 if let matchedUnit = self.availableUnits.first(where: { $0.name.lowercased() == unitNameLowercased }) {
-                    // If a match is found, use its ID to create the payload
                     unitPayload = .init(
                         value1: .init(id: matchedUnit.id, name: matchedUnit.name),
                         value2: nil
                     )
                 } else {
-                    // As a fallback, if no unit is matched, clear it
                     unitPayload = nil
                 }
-                
+
                 var foodPayload: Components.Schemas.RecipeIngredient_hyphen_Input.foodPayload?
                 let foodNameLowercased = cleanName.lowercased()
 
-                // Try to find a matching, existing food item
                 if let matchedFood = self.availableFoods.first(where: { $0.name.lowercased() == foodNameLowercased }) {
-                    // SUCCESS: Match found. Use its ID.
                     foodPayload = .init(
                         value1: .init(id: matchedFood.id, name: matchedFood.name),
                         value2: nil
@@ -197,10 +184,10 @@ class EditRecipeViewModel {
                 } else {
                     foodPayload = nil
                 }
-                
+
                 return Components.Schemas.RecipeIngredient_hyphen_Input(
                     quantity: ingredient.quantity,
-                    unit: unitPayload, // Use the new, correctly structured payload
+                    unit: unitPayload,
                     food: foodPayload,
                     note: ingredient.note,
                     disableAmount: true,
@@ -210,20 +197,7 @@ class EditRecipeViewModel {
                     referenceId: nil
                 )
             }
-            
-            // Debug logging for ingredients
-            AppLogger.debug(.recipes, "API Ingredients:")
-            for (index, ingredient) in apiIngredients.enumerated() {
-                AppLogger.debug(.recipes, "  \(index): \(ingredient.food?.value2?.name ?? "Unknown") - \(ingredient.quantity) \(ingredient.unit?.value2?.name ?? "Unknown")")
-            }
 
-            // Debug logging for cleaned ingredients
-            AppLogger.debug(.recipes, "Cleaned Ingredients:")
-            for (index, ingredient) in cleanedIngredients.enumerated() {
-                AppLogger.debug(.recipes, "  \(index): \(ingredient.name) - \(ingredient.quantity) \(ingredient.unit.name)")
-            }
-            
-            // Convert instructions to API format
             apiInstructions = validInstructions.map { instruction in
                 Components.Schemas.RecipeStep(
                     id: nil,
@@ -233,15 +207,16 @@ class EditRecipeViewModel {
                     ingredientReferences: []
                 )
             }
-            
-            // Debug logging for instructions
-            AppLogger.debug(.recipes, "API Instructions:")
-            for (index, instruction) in apiInstructions.enumerated() {
-                AppLogger.debug(.recipes, "  \(index): \(instruction.text ?? "No text")")
-            }
+
+            // ─── LOCAL-FIRST: Save to SwiftData immediately ───
 
             var remoteId = recipe.remoteId
+
+            // For new recipes that need server creation, we must be online
             if isNew {
+                guard networkMonitor?.isConnected ?? true else {
+                    throw MealieAPIError.custom("Creating new recipes requires an internet connection")
+                }
                 let slug = try await apiService.addRecipeManual(recipeName: recipeName)
                 AppLogger.debug(.recipes, "Recipe added with slug: \(slug)")
                 let serverRecipe = try await apiService.fetchRecipeDetails(slug: slug)
@@ -249,68 +224,8 @@ class EditRecipeViewModel {
                 self.slug = serverRecipe.slug
                 remoteId = serverRecipe.remoteId
             }
-            
-            // Create the recipe input data
-            let recipeInput = Components.Schemas.Recipe_hyphen_Input(
-                id: remoteId,
-                userId: finalUserId,
-                householdId: finalHouseholdId,
-                groupId: finalGroupId,
-                name: recipeName,
-                slug: recipeSlug,
-                image: recipe.image.flatMap { imageString in
-                    // Only include image if it's not empty and is a valid string
-                    let cleanImageString = imageString.trimmingCharacters(in: .whitespacesAndNewlines)
-                    return cleanImageString.isEmpty ? nil : .init(stringLiteral: cleanImageString)
-                },
-                recipeServings: Double(servings) ?? 0,
-                recipeYieldQuantity: Double(recipe.recipeYieldQuantity),
-                recipeYield: cleanYield,
-                totalTime: recipe.totalTime,
-                prepTime: prepTime,
-                cookTime: cookTime,
-                performTime: performTime,
-                description: cleanDescription,
-                recipeCategory: [],
-                tags: [],
-                tools: [],
-                rating: recipe.rating.map { Double($0) },
-                orgURL: recipeOrgURL,
-                dateAdded: dateAdded,
-                dateUpdated: dateUpdated,
-                createdAt: createdAt,
-                update_at: updateAt,
-                lastMade: recipe.lastMade,
-                recipeIngredient: apiIngredients,
-                recipeInstructions: apiInstructions,
-                nutrition: nil,
-                settings: nil,
-                assets: [],
-                notes: [],
-                extras: .init(),
-                comments: []
-            )
-            
-            AppLogger.debug(.recipes, "About to call updateRecipe API...")
 
-            // Debug: Log the final recipe data
-            AppLogger.debug(.recipes, "Final recipe data:")
-            AppLogger.debug(.recipes, "  - ID: \(recipe.remoteId)")
-            AppLogger.debug(.recipes, "  - User ID: \(finalUserId)")
-            AppLogger.debug(.recipes, "  - Group ID: \(finalGroupId)")
-            AppLogger.debug(.recipes, "  - Household ID: \(finalHouseholdId)")
-            AppLogger.debug(.recipes, "  - Slug: \(recipeSlug)")
-            AppLogger.debug(.recipes, "  - OrgURL: \(recipeOrgURL ?? "NIL")")
-            AppLogger.debug(.recipes, "  - Name: \(recipeName)")
-            AppLogger.debug(.recipes, "  - Ingredients: \(apiIngredients.count)")
-            AppLogger.debug(.recipes, "  - Instructions: \(apiInstructions.count)")
-                        
-            // Update the recipe on the server
-            try await apiService.updateRecipe(slug: recipeSlug, recipeData: recipeInput)
-            
-            AppLogger.debug(.recipes, "API call successful, updating local data...")
-            
-            // Update local recipe data
+            // Save locally first (optimistic update)
             recipe.remoteId = remoteId
             recipe.slug = recipeSlug
             recipe.name = recipeName
@@ -330,32 +245,107 @@ class EditRecipeViewModel {
                 updated.step = index + 1
                 return updated
             }
+            recipe.hasLocalChanges = true
 
             do {
                 try modelContext.save()
-                showSuccess = true
-                AppLogger.info(.recipes, "Recipe update completed successfully")
+                AppLogger.info(.recipes, "Recipe saved locally")
             } catch {
                 AppLogger.error(.recipes, "Failed to save recipe locally: \(error)")
-                self.error = "Recipe updated on server but failed to save locally: \(error.localizedDescription)"
+                self.error = "Failed to save recipe locally: \(error.localizedDescription)"
+                isLoading = false
+                return
             }
+
+            // ─── SYNC: Attempt API push ───
+
+            let isOnline = networkMonitor?.isConnected ?? true
+
+            if isOnline && !isNew {
+                // Build the API payload
+                let recipeInput = Components.Schemas.Recipe_hyphen_Input(
+                    id: remoteId,
+                    userId: finalUserId,
+                    householdId: finalHouseholdId,
+                    groupId: finalGroupId,
+                    name: recipeName,
+                    slug: recipeSlug,
+                    image: recipe.image.flatMap { imageString in
+                        let cleanImageString = imageString.trimmingCharacters(in: .whitespacesAndNewlines)
+                        return cleanImageString.isEmpty ? nil : .init(stringLiteral: cleanImageString)
+                    },
+                    recipeServings: Double(servings) ?? 0,
+                    recipeYieldQuantity: Double(recipe.recipeYieldQuantity),
+                    recipeYield: cleanYield,
+                    totalTime: recipe.totalTime,
+                    prepTime: prepTime,
+                    cookTime: cookTime,
+                    performTime: performTime,
+                    description: cleanDescription,
+                    recipeCategory: [],
+                    tags: [],
+                    tools: [],
+                    rating: recipe.rating.map { Double($0) },
+                    orgURL: recipeOrgURL,
+                    dateAdded: dateAdded,
+                    dateUpdated: dateUpdated,
+                    createdAt: createdAt,
+                    update_at: updateAt,
+                    lastMade: recipe.lastMade,
+                    recipeIngredient: apiIngredients,
+                    recipeInstructions: apiInstructions,
+                    nutrition: nil,
+                    settings: nil,
+                    assets: [],
+                    notes: [],
+                    extras: .init(),
+                    comments: []
+                )
+
+                do {
+                    try await apiService.updateRecipe(slug: recipeSlug, recipeData: recipeInput)
+                    recipe.hasLocalChanges = false
+                    try? modelContext.save()
+                    AppLogger.info(.recipes, "Recipe synced to server successfully")
+                } catch {
+                    // API failed — enqueue for later sync
+                    AppLogger.warning(.recipes, "API update failed, enqueueing for later: \(error.localizedDescription)")
+                    enqueueRecipeSync(slug: recipeSlug)
+                }
+            } else if !isNew {
+                // Offline — enqueue for later sync
+                AppLogger.info(.recipes, "Offline — enqueueing recipe update for later sync")
+                enqueueRecipeSync(slug: recipeSlug)
+            }
+
+            // For new recipes, the API calls already happened above, so clear the flag
+            if isNew {
+                recipe.hasLocalChanges = false
+                try? modelContext.save()
+            }
+
+            showSuccess = true
             isLoading = false
         } catch {
-            AppLogger.error(.recipes, "Error updating recipe: \(error)")
-            AppLogger.error(.recipes, "Error type: \(type(of: error))")
+            AppLogger.error(.recipes, "Error saving recipe: \(error)")
             if let mealieError = error as? MealieAPIError {
                 AppLogger.error(.recipes, "MealieAPIError case: \(mealieError)")
             }
 
-            // Log high-level counts at error; move user content to debug-only
-            AppLogger.error(.recipes, "Failed to update recipe (ingredients: \(apiIngredients.count), instructions: \(apiInstructions.count))")
-            AppLogger.debug(.recipes, "Failed recipe name: \(recipeName)")
-            AppLogger.debug(.recipes, "First ingredient: \(apiIngredients.first?.food?.value2?.name ?? "None")")
-            AppLogger.debug(.recipes, "First instruction: \(apiInstructions.first?.text ?? "None")")
-            
+            AppLogger.error(.recipes, "Failed to save recipe (ingredients: \(apiIngredients.count), instructions: \(apiInstructions.count))")
+
             self.error = error.localizedDescription
             self.isLoading = false
         }
+    }
+
+    /// Enqueues a recipe update operation for later synchronization.
+    private func enqueueRecipeSync(slug: String) {
+        syncManager?.enqueueOperation(
+            type: .updateRecipe,
+            entityId: recipe.remoteId,
+            payload: slug.data(using: .utf8)
+        )
     }
     
     /// Appends a new blank ingredient to the recipe.

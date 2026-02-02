@@ -183,4 +183,98 @@ struct EditRecipeViewModelTests {
         #expect(vm.instructions.count == 1)
         #expect(vm.instructions[0].text == "Keep")
     }
+
+    // MARK: - Offline-First / saveRecipe Tests
+
+    @Test
+    func saveRecipe_setsHasLocalChanges() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = false
+        let recipe = makeTestRecipe(name: "Old Name", slug: "old-name")
+        ctx.insert(recipe)
+        try? ctx.save()
+
+        let vm = EditRecipeViewModel(
+            modelContext: ctx,
+            recipe: recipe,
+            mealieAPIService: api,
+            user: makeTestUser()
+        )
+        vm.networkMonitor = monitor
+        vm.name = "Updated Name"
+
+        await vm.saveRecipe()
+
+        // Local save should succeed and flag hasLocalChanges
+        #expect(recipe.hasLocalChanges == true)
+        #expect(recipe.name == "Updated Name")
+    }
+
+    @Test
+    func saveRecipe_enqueuesOnOffline() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = false
+        let syncMgr = SyncManager(apiService: api, modelContext: ctx, networkMonitor: monitor)
+
+        let recipe = makeTestRecipe(name: "Offline Recipe", slug: "offline-recipe")
+        ctx.insert(recipe)
+        try? ctx.save()
+
+        let vm = EditRecipeViewModel(
+            modelContext: ctx,
+            recipe: recipe,
+            mealieAPIService: api,
+            user: makeTestUser()
+        )
+        vm.syncManager = syncMgr
+        vm.networkMonitor = monitor
+        vm.name = "Offline Edit"
+
+        await vm.saveRecipe()
+
+        // Recipe saved locally
+        #expect(recipe.name == "Offline Edit")
+        #expect(recipe.hasLocalChanges == true)
+
+        // No API update call since offline
+        #expect(api.updateRecipeCallCount == 0)
+
+        // Pending operation was enqueued
+        let ops = (try? ctx.fetch(FetchDescriptor<PendingOperation>())) ?? []
+        #expect(ops.count == 1)
+        #expect(ops.first?.operationType == PendingOperationType.updateRecipe.rawValue)
+    }
+
+    @Test
+    func saveRecipe_clearsHasLocalChangesOnSync() async {
+        let ctx = makeTestModelContext()
+        let api = TestAPIService()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = true
+
+        let recipe = makeTestRecipe(name: "Sync Recipe", slug: "sync-recipe")
+        ctx.insert(recipe)
+        try? ctx.save()
+
+        let vm = EditRecipeViewModel(
+            modelContext: ctx,
+            recipe: recipe,
+            mealieAPIService: api,
+            user: makeTestUser()
+        )
+        vm.networkMonitor = monitor
+        vm.name = "Synced Edit"
+
+        await vm.saveRecipe()
+
+        // API should have been called
+        #expect(api.updateRecipeCallCount == 1)
+
+        // hasLocalChanges should be cleared after successful sync
+        #expect(recipe.hasLocalChanges == false)
+    }
 }

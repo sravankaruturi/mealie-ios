@@ -36,10 +36,16 @@ A comprehensive list of planned improvements and features for the app.
 - [x] **M2: Replace Print Statements with Proper Logging** - Replace 129 `print()` calls with structured logging using os.Logger
   - All service and view model files
 
-- [ ] **M3: Offline Support** - Implement offline-first architecture with local mutation queue and background sync
-  - New: `SyncManager.swift`
-  - `RecipesViewModel.swift`
-  - `MealPlanViewModel.swift`
+- [x] **M3: Offline Support** - Offline-first architecture with persistent operation queue, network monitoring, and automatic sync
+  - New: `PendingOperation.swift` — persistent mutation queue model
+  - New: `SyncMetadata.swift` — persistent sync timestamps
+  - New: `NetworkMonitor.swift` — NWPathMonitor connectivity tracking
+  - New: `SyncManager.swift` — queue processor with exponential backoff
+  - New: `OfflineBanner.swift` — UI indicator for offline state
+  - Modified: `RecipesViewModel.swift` — persistent lastSyncTime, protects local changes
+  - Modified: `EditRecipeViewModel.swift` — local-first save pattern
+  - Modified: `MealPlanViewModel.swift` — local-first meal plan creation
+  - Modified: `RecipeCardView.swift` — enqueues favorites instead of reverting
 
 - [x] **M4: Consolidate Date Parsing** - Unify multiple overlapping date parsing methods into a single utility
   - Removed duplicate `parseDateString()` and `normalizeTimestamp()` from MealieAPIService
