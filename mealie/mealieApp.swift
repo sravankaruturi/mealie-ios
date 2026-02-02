@@ -70,6 +70,7 @@ struct mealieApp: App {
             ContentView(mealieAPIService: appState.mealieAPIService, authState: appState.authState)
                 .environment(appState.authState)
                 .environment(appState.networkMonitor)
+                .environment(\.syncManager, syncManager)
                 .task {
                     if syncManager == nil {
                         let context = ModelContext(sharedModelContainer)

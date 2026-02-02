@@ -25,7 +25,7 @@ struct MainTabBodyView : View {
         self.recipesViewModel = .init(modelContext: modelContext, mealieAPIService: mealieAPIService)
     }
 
-    @State var recipesViewModel: RecipesViewModel
+    @State private var recipesViewModel: RecipesViewModel
 
     var body: some View {
 

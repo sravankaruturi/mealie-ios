@@ -46,8 +46,10 @@ final class MealPlanViewModel {
         // Attempt server sync
         let isOnline = networkMonitor?.isConnected ?? true
         if isOnline {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withFullDate]
             let entryData: [String: Any] = [
-                "date": date,
+                "date": formatter.string(from: date),
                 "mealType": mealType,
                 "recipeId": recipe.remoteId
             ]

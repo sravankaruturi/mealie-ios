@@ -10,9 +10,9 @@ struct RecipeCardView: View {
 
     var mealieAPIService: MealieAPIServiceProtocol
     /// Optional sync manager for enqueueing favorite toggles when offline.
-    var syncManager: SyncManager?
+    @Environment(\.syncManager) private var syncManager: SyncManager?
     /// Optional network monitor for checking connectivity.
-    var networkMonitor: NetworkMonitor?
+    @Environment(NetworkMonitor.self) private var networkMonitor: NetworkMonitor?
 
     var body: some View {
         

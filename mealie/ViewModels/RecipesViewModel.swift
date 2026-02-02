@@ -17,8 +17,6 @@ final class RecipesViewModel {
     let apiService: MealieAPIServiceProtocol
     /// The current list of locally stored recipes.
     var recipes: [Recipe]
-    /// Timestamp of the most recent successful sync (persisted via ``SyncMetadata``).
-    
     /// Creates a view model with the given model context and API service, loading any existing recipes.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext

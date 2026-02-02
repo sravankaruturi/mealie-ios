@@ -46,7 +46,7 @@ struct OfflineBanner: View {
         OfflineBanner(
             networkMonitor: {
                 let m = NetworkMonitor()
-                // Preview as offline
+                m.isConnected = false
                 return m
             }(),
             pendingCount: 3

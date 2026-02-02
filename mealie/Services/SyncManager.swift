@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import SwiftUI
 
 /// JSON payload for a favorite toggle operation.
 struct FavoritePayload: Codable {
@@ -68,9 +69,14 @@ final class SyncManager {
             payload: payload
         )
         modelContext.insert(operation)
-        try? modelContext.save()
-        refreshPendingCount()
-        AppLogger.info(.sync, "Enqueued \(type.rawValue) for entity \(entityId)")
+        do {
+            try modelContext.save()
+            refreshPendingCount()
+            AppLogger.info(.sync, "Enqueued \(type.rawValue) for entity \(entityId)")
+        } catch {
+            modelContext.rollback()
+            AppLogger.error(.sync, "Failed to persist pending operation: \(error)")
+        }
     }
 
     // MARK: - Process Queue
@@ -125,14 +131,22 @@ final class SyncManager {
                 try await executeOperation(operation)
                 // Success — remove from queue
                 modelContext.delete(operation)
-                try? modelContext.save()
+                do {
+                    try modelContext.save()
+                } catch {
+                    AppLogger.error(.sync, "Failed to persist operation removal: \(error)")
+                }
                 AppLogger.info(.sync, "Completed \(operation.operationType) for \(operation.entityId)")
             } catch {
                 // Failure — increment retry count
                 operation.retryCount += 1
                 operation.lastAttempt = Date()
                 operation.errorMessage = error.localizedDescription
-                try? modelContext.save()
+                do {
+                    try modelContext.save()
+                } catch {
+                    AppLogger.error(.sync, "Failed to persist retry state: \(error)")
+                }
                 AppLogger.warning(.sync, "Failed \(operation.operationType) for \(operation.entityId): \(error.localizedDescription) (retry \(operation.retryCount))")
             }
         }
@@ -152,7 +166,11 @@ final class SyncManager {
             modelContext.delete(op)
         }
         if !staleOps.isEmpty {
-            try? modelContext.save()
+            do {
+                try modelContext.save()
+            } catch {
+                AppLogger.error(.sync, "Failed to persist stale operation pruning: \(error)")
+            }
         }
     }
 
@@ -172,7 +190,11 @@ final class SyncManager {
             AppLogger.error(.sync, "Unknown operation type: \(operation.operationType)")
             // Delete unknown operations so they don't clog the queue
             modelContext.delete(operation)
-            try? modelContext.save()
+            do {
+                try modelContext.save()
+            } catch {
+                AppLogger.error(.sync, "Failed to persist unknown operation removal: \(error)")
+            }
             return
         }
 
@@ -211,7 +233,11 @@ final class SyncManager {
 
         // Clear the local changes flag on success
         recipe.hasLocalChanges = false
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            AppLogger.error(.sync, "Failed to persist hasLocalChanges reset: \(error)")
+        }
     }
 
     /// Replays a favorite toggle operation against the API.
@@ -235,8 +261,10 @@ final class SyncManager {
         }
         let payload = try JSONDecoder().decode(MealPlanPayload.self, from: payloadData)
 
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
         let entryData: [String: Any] = [
-            "date": payload.date,
+            "date": formatter.string(from: payload.date),
             "mealType": payload.mealType,
             "recipeId": payload.recipeId
         ]
@@ -248,7 +276,11 @@ final class SyncManager {
         if let entries = try? modelContext.fetch(descriptor) {
             if let entry = entries.first(where: { $0.localId == localId }) {
                 entry.isSynced = true
-                try? modelContext.save()
+                do {
+                    try modelContext.save()
+                } catch {
+                    AppLogger.error(.sync, "Failed to persist meal plan sync status: \(error)")
+                }
             }
         }
     }
@@ -326,5 +358,19 @@ final class SyncManager {
             extras: .init(),
             comments: []
         )
+    }
+}
+
+// MARK: - Environment Key
+
+/// Environment key for injecting the ``SyncManager`` into the SwiftUI view hierarchy.
+private struct SyncManagerKey: EnvironmentKey {
+    static let defaultValue: SyncManager? = nil
+}
+
+extension EnvironmentValues {
+    var syncManager: SyncManager? {
+        get { self[SyncManagerKey.self] }
+        set { self[SyncManagerKey.self] = newValue }
     }
 }
