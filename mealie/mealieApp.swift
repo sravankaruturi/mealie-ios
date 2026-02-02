@@ -20,7 +20,10 @@ struct mealieApp: App {
             Ingredient.self,
             Instruction.self,
             Tag.self,
-            MealPlanEntry.self
+            MealPlanEntry.self,
+            PendingOperation.self,
+            SyncMetadata.self,
+            User.self
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -59,13 +62,31 @@ struct mealieApp: App {
         }
     }()
     
-    @State private var appState = AppState()
-    
+    @State private var appState: AppState
+    @State private var syncManager: SyncManager?
+
+    init() {
+        let container = sharedModelContainer
+        _appState = State(initialValue: AppState(modelContainer: container))
+    }
+
     var body: some Scene {
-        
+
         WindowGroup {
             ContentView(mealieAPIService: appState.mealieAPIService, authState: appState.authState)
                 .environment(appState.authState)
+                .environment(appState.networkMonitor)
+                .environment(\.syncManager, syncManager)
+                .task {
+                    if syncManager == nil {
+                        let context = ModelContext(sharedModelContainer)
+                        syncManager = SyncManager(
+                            apiService: appState.mealieAPIService,
+                            modelContext: context,
+                            networkMonitor: appState.networkMonitor
+                        )
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
     }
@@ -81,12 +102,17 @@ final class AppState {
     let authService: AuthenticationServiceProtocol
     /// The observable authentication state shared across the app.
     let authState: AuthenticationState
+    /// Monitors network connectivity and notifies on reconnection.
+    let networkMonitor: NetworkMonitor
 
     /// Initializes the service graph with default concrete implementations.
-    init() {
+    init(modelContainer: ModelContainer) {
+        let authModelContext = ModelContext(modelContainer)
         self.mealieAPIService = MealieAPIService(serverURL: nil)
         self.authService = AuthenticationService(mealieAPIService: mealieAPIService)
-        self.authState = AuthenticationState(authService: authService)
+        self.authState = AuthenticationState(authService: authService, modelContext: authModelContext)
+        self.networkMonitor = NetworkMonitor()
+        self.networkMonitor.start()
     }
 
 }

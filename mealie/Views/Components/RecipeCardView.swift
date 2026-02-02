@@ -7,8 +7,12 @@ struct RecipeCardView: View {
     let recipe: Recipe
     @Environment(\.modelContext) private var modelContext
     @State private var isTogglingFavorite = false
-    
+
     var mealieAPIService: MealieAPIServiceProtocol
+    /// Optional sync manager for enqueueing favorite toggles when offline.
+    @Environment(\.syncManager) private var syncManager: SyncManager?
+    /// Optional network monitor for checking connectivity.
+    @Environment(NetworkMonitor.self) private var networkMonitor: NetworkMonitor?
 
     var body: some View {
         
@@ -79,12 +83,14 @@ struct RecipeCardView: View {
         }
     }
     
-    /// Optimistically toggles favorite state locally, then syncs with the server. Reverts on failure.
+    /// Optimistically toggles favorite state locally, then syncs with the server.
+    ///
+    /// If offline or the API call fails, the local state is kept and a
+    /// ``PendingOperation`` is enqueued for later sync instead of reverting.
     private func toggleFavorite() async {
         let slug = recipe.slug
         guard !slug.isEmpty else {
             AppLogger.warning(.recipes, "Recipe slug is missing, cannot sync with server")
-            // Still toggle locally even if server sync fails
             await MainActor.run {
                 recipe.toggleFavorite()
                 do {
@@ -96,51 +102,48 @@ struct RecipeCardView: View {
             }
             return
         }
-        
-        // Store the original state in case we need to revert
-        let originalFavoriteState = recipe.isFavorite
-        
-        // Optimistic update - update UI immediately on main actor
+
+        // Optimistic update — save locally immediately
         await MainActor.run {
             recipe.toggleFavorite()
             do {
                 try modelContext.save()
             } catch {
                 AppLogger.error(.recipes, "Failed to save optimistic favorite update: \(error)")
-                // Continue anyway - the server sync will be the source of truth
             }
         }
-        
-        isTogglingFavorite = true
-        
-        do {
-            if !recipe.isFavorite { // Note: we already toggled, so check the new state
-                // Remove from favorites
-                try await self.mealieAPIService.removeFromFavorites(recipeSlug: slug)
-            } else {
-                // Add to favorites
-                try await self.mealieAPIService.addToFavorites(recipeSlug: slug)
-            }
-            
-            // Server sync successful, no need to revert
-            
-        } catch {
-            AppLogger.error(.recipes, "Failed to sync favorite with server: \(error)")
-            
-            // Revert the optimistic update on failure and show toast - ensure this happens on main actor
-            await MainActor.run {
-                recipe.isFavorite = originalFavoriteState
-                do {
-                    try modelContext.save()
-                } catch {
-                    AppLogger.error(.recipes, "Failed to revert favorite state: \(error)")
+
+        await MainActor.run { isTogglingFavorite = true }
+
+        let isOnline = networkMonitor?.isConnected ?? true
+        if isOnline {
+            do {
+                if !recipe.isFavorite {
+                    try await self.mealieAPIService.removeFromFavorites(recipeSlug: slug)
+                } else {
+                    try await self.mealieAPIService.addToFavorites(recipeSlug: slug)
                 }
-                // Show user feedback via toast (must be on MainActor)
-                ToastManager.shared.showError("Failed to sync favorite with server")
+            } catch {
+                AppLogger.warning(.recipes, "Failed to sync favorite with server, enqueueing: \(error)")
+                enqueueFavoriteSync(slug: slug, isFavorite: recipe.isFavorite)
             }
+        } else {
+            AppLogger.info(.recipes, "Offline — enqueueing favorite toggle for later sync")
+            enqueueFavoriteSync(slug: slug, isFavorite: recipe.isFavorite)
         }
-        
-        isTogglingFavorite = false
+
+        await MainActor.run { isTogglingFavorite = false }
+    }
+
+    /// Enqueues a favorite toggle for later synchronization.
+    private func enqueueFavoriteSync(slug: String, isFavorite: Bool) {
+        let payload = FavoritePayload(slug: slug, isFavorite: isFavorite)
+        guard let payloadData = try? JSONEncoder().encode(payload) else { return }
+        syncManager?.enqueueOperation(
+            type: .toggleFavorite,
+            entityId: recipe.remoteId,
+            payload: payloadData
+        )
     }
 }
 

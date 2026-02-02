@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// User profile screen showing server info, sync status, and logout functionality.
@@ -214,10 +215,10 @@ struct ProfileView: View {
     
     /// Returns a human-readable relative time string for the last sync (e.g., "5 min ago").
     private func formatLastSyncTime() -> String {
-        guard let lastSync = recipesViewModel.lastSyncTime else {
+        guard let lastSync = SyncMetadata.lastSyncTime(in: recipesViewModel.modelContext) else {
             return "Never"
         }
-        
+
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: lastSync, relativeTo: Date())

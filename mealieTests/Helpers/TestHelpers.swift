@@ -12,7 +12,8 @@ func makeTestModelContext() -> ModelContext {
         MealPlanEntry.self, User.self, Tag.self,
         RecipeCategory.self, RecipeTool.self,
         RecipeNutrition.self, RecipeSettings.self,
-        RecipeAsset.self, RecipeNote.self, RecipeComment.self
+        RecipeAsset.self, RecipeNote.self, RecipeComment.self,
+        PendingOperation.self, SyncMetadata.self
     ])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: [config])

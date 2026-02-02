@@ -35,6 +35,9 @@ final class Recipe: Hashable {
     
     // User preferences
     var isFavorite: Bool = false
+
+    /// Whether this recipe has local edits that have not yet been synced to the server.
+    var hasLocalChanges: Bool = false
     
     @Relationship(deleteRule: .nullify) var categories: [RecipeCategory] = []
     @Relationship(deleteRule: .nullify) var tags: [Tag] = []

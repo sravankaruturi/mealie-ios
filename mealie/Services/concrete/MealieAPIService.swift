@@ -17,6 +17,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     init(serverURL: URL?) {
 
         let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 60
         self.session = URLSession(configuration: config)
 
         if let url = serverURL {
@@ -31,7 +33,7 @@ final class MealieAPIService: MealieAPIServiceProtocol {
         self.serverURL = url
         self.client = Client(
             serverURL: url,
-            transport: URLSessionTransport(),
+            transport: URLSessionTransport(configuration: .init(session: self.session)),
             middlewares: [self.authMiddleware]
         )
     }
