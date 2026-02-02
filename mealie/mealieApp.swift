@@ -22,7 +22,8 @@ struct mealieApp: App {
             Tag.self,
             MealPlanEntry.self,
             PendingOperation.self,
-            SyncMetadata.self
+            SyncMetadata.self,
+            User.self
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -61,8 +62,13 @@ struct mealieApp: App {
         }
     }()
     
-    @State private var appState = AppState()
+    @State private var appState: AppState
     @State private var syncManager: SyncManager?
+
+    init() {
+        let container = sharedModelContainer
+        _appState = State(initialValue: AppState(modelContainer: container))
+    }
 
     var body: some Scene {
 
@@ -100,10 +106,11 @@ final class AppState {
     let networkMonitor: NetworkMonitor
 
     /// Initializes the service graph with default concrete implementations.
-    init() {
+    init(modelContainer: ModelContainer) {
+        let authModelContext = ModelContext(modelContainer)
         self.mealieAPIService = MealieAPIService(serverURL: nil)
         self.authService = AuthenticationService(mealieAPIService: mealieAPIService)
-        self.authState = AuthenticationState(authService: authService)
+        self.authState = AuthenticationState(authService: authService, modelContext: authModelContext)
         self.networkMonitor = NetworkMonitor()
         self.networkMonitor.start()
     }
