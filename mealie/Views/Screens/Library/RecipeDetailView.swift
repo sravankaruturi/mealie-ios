@@ -34,7 +34,7 @@ struct RecipeDetailView: View {
                 // NOTE: The Mealie web interface uses 'performTime' to display what is conceptually the "Cook Time".
                 // We are matching that behavior here instead of using the 'cookTime' field.
                 RecipeMetadataRow(items: RecipeMetadataRow.filtered([
-                    .init(icon: "person.2", value: "\(recipe.recipeServings)"),
+                    .init(icon: "person.2", value: recipe.recipeServings > 0 ? "\(recipe.recipeServings)" : ""),
                     .init(icon: "timer", value: recipe.prepTime ?? ""),
                     .init(icon: "flame", value: recipe.performTime ?? ""),
                 ]))

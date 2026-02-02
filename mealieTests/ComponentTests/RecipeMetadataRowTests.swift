@@ -50,4 +50,16 @@ struct RecipeMetadataRowTests {
         #expect(result.count == 1)
         #expect(result[0].value == " 15 min ")
     }
+
+    @Test
+    func filtered_trimsNewlines() {
+        let items: [RecipeMetadataRow.MetadataItem] = [
+            .init(icon: "person.2", value: "\n"),
+            .init(icon: "timer", value: "15 min"),
+            .init(icon: "flame", value: " \n "),
+        ]
+        let result = RecipeMetadataRow.filtered(items)
+        #expect(result.count == 1)
+        #expect(result[0].value == "15 min")
+    }
 }

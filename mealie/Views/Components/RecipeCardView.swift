@@ -67,7 +67,7 @@ struct RecipeCardView: View {
                 
                 RecipeMetadataRow(items: RecipeMetadataRow.filtered([
                     .init(icon: "flame", value: recipe.cookTime?.split(separator: " ").first.map(String.init) ?? ""),
-                    .init(icon: "person.2", value: "\(recipe.recipeServings)"),
+                    .init(icon: "person.2", value: recipe.recipeServings > 0 ? "\(recipe.recipeServings)" : ""),
                 ]))
                 .font(.caption)
                 .padding(.all, 8)

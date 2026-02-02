@@ -13,19 +13,20 @@ struct RecipeMetadataRow: View {
 
     /// A single piece of recipe metadata with an icon and text.
     struct MetadataItem: Identifiable {
-        /// Unique identifier for this item.
-        let id = UUID()
         /// The SF Symbol name for the icon.
         let icon: String
         /// The display text (e.g., "4", "30 min").
         let value: String
+
+        /// Stable identity derived from content to avoid SwiftUI diff churn.
+        var id: String { "\(icon)|\(value)" }
     }
 
     /// Returns only items whose values are non-empty after trimming whitespace.
     ///
     /// Use this to avoid displaying labels for missing recipe fields (e.g., no cook time).
     static func filtered(_ items: [MetadataItem]) -> [MetadataItem] {
-        items.filter { !$0.value.trimmingCharacters(in: .whitespaces).isEmpty }
+        items.filter { !$0.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 
     var body: some View {
