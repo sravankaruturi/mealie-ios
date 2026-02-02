@@ -81,6 +81,27 @@ struct RecipesViewModelTests {
         #expect(vm.shouldSyncRecipes() == true)
     }
 
+    @Test
+    func syncRecipes_skipsWhenOffline() async {
+        let (vm, api) = makeVM()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = false
+        vm.networkMonitor = monitor
+        await vm.syncRecipes()
+        #expect(api.fetchAllRecipesOptimizedCallCount == 0, "No API call should be made when offline")
+        #expect(vm.isSyncing == false, "isSyncing should remain false when skipping due to offline")
+    }
+
+    @Test
+    func syncRecipes_proceedsWhenOnline() async {
+        let (vm, api) = makeVM()
+        let monitor = NetworkMonitor()
+        monitor.isConnected = true
+        vm.networkMonitor = monitor
+        await vm.syncRecipes()
+        #expect(api.fetchAllRecipesOptimizedCallCount == 1, "API call should proceed when online")
+    }
+
     // MARK: - Async Sync Tests
 
     @Test

@@ -51,7 +51,12 @@ struct MainTabBodyView : View {
             }
         }
         .onAppear() {
+            recipesViewModel.networkMonitor = networkMonitor
             Task {
+                guard networkMonitor?.isConnected ?? true else {
+                    AppLogger.debug(.sync, "Skipping recipe sync — offline")
+                    return
+                }
                 if self.recipesViewModel.shouldSyncRecipes() {
                     await self.recipesViewModel.syncRecipes()
                 } else {

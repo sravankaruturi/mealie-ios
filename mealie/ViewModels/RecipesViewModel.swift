@@ -17,6 +17,8 @@ final class RecipesViewModel {
     let apiService: MealieAPIServiceProtocol
     /// The current list of locally stored recipes.
     var recipes: [Recipe]
+    /// Optional network monitor for checking connectivity before sync.
+    var networkMonitor: NetworkMonitor?
     /// Creates a view model with the given model context and API service, loading any existing recipes.
     init(modelContext: ModelContext, mealieAPIService: MealieAPIServiceProtocol) {
         self.modelContext = modelContext
@@ -267,7 +269,13 @@ final class RecipesViewModel {
     }
 
     /// Performs an optimized sync, only fetching details for new or updated recipes.
+    ///
+    /// Exits early if the device is offline to avoid hanging on a network request.
     func syncRecipes() async {
+        guard networkMonitor?.isConnected ?? true else {
+            AppLogger.info(.sync, "Skipping sync — device is offline")
+            return
+        }
         isSyncing = true
         error = nil
         defer { isSyncing = false }

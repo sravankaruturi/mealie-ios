@@ -17,6 +17,8 @@ final class MealieAPIService: MealieAPIServiceProtocol {
     init(serverURL: URL?) {
 
         let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForResource = 60
         self.session = URLSession(configuration: config)
 
         if let url = serverURL {
