@@ -272,15 +272,15 @@ final class SyncManager {
 
         // Mark the local entry as synced
         let localId = operation.entityId
-        let descriptor = FetchDescriptor<MealPlanEntry>()
-        if let entries = try? modelContext.fetch(descriptor) {
-            if let entry = entries.first(where: { $0.localId == localId }) {
-                entry.isSynced = true
-                do {
-                    try modelContext.save()
-                } catch {
-                    AppLogger.error(.sync, "Failed to persist meal plan sync status: \(error)")
-                }
+        let descriptor = FetchDescriptor<MealPlanEntry>(
+            predicate: #Predicate { $0.localId == localId }
+        )
+        if let entry = (try? modelContext.fetch(descriptor))?.first {
+            entry.isSynced = true
+            do {
+                try modelContext.save()
+            } catch {
+                AppLogger.error(.sync, "Failed to persist meal plan sync status: \(error)")
             }
         }
     }

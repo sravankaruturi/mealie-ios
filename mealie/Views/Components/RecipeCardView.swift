@@ -113,7 +113,7 @@ struct RecipeCardView: View {
             }
         }
 
-        isTogglingFavorite = true
+        await MainActor.run { isTogglingFavorite = true }
 
         let isOnline = networkMonitor?.isConnected ?? true
         if isOnline {
@@ -132,7 +132,7 @@ struct RecipeCardView: View {
             enqueueFavoriteSync(slug: slug, isFavorite: recipe.isFavorite)
         }
 
-        isTogglingFavorite = false
+        await MainActor.run { isTogglingFavorite = false }
     }
 
     /// Enqueues a favorite toggle for later synchronization.
