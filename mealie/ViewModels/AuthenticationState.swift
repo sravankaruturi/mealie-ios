@@ -193,13 +193,17 @@ final class AuthenticationState {
     // MARK: - Background Validation
 
     /// Validates token in background. Only logs out on server-side rejection (401).
+    /// Guards against stale tokens — if the user logged out or switched accounts
+    /// while this was in-flight, the result is silently discarded.
     @MainActor
     private func validateTokenInBackground(token: String, serverURL: URL) async {
         do {
             let user = try await authService.validateToken(token: token, serverURL: serverURL)
+            guard keychainService.getToken() == token else { return }
             cacheUser(user)
             status = .authenticated(user)
         } catch {
+            guard keychainService.getToken() == token else { return }
             if isAuthRejection(error) {
                 AppLogger.warning(.auth, "Token rejected by server, logging out")
                 keychainService.deleteToken()
