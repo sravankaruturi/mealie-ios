@@ -33,11 +33,11 @@ struct RecipeDetailView: View {
                 
                 // NOTE: The Mealie web interface uses 'performTime' to display what is conceptually the "Cook Time".
                 // We are matching that behavior here instead of using the 'cookTime' field.
-                HStack(spacing: 16) {
-                    Label("\(recipe.recipeServings)", systemImage: "person.2")
-                    Label(recipe.prepTime ?? "", systemImage: "timer")
-                    Label(recipe.performTime ?? "", systemImage: "flame")
-                }
+                RecipeMetadataRow(items: RecipeMetadataRow.filtered([
+                    .init(icon: "person.2", value: recipe.recipeServings > 0 ? "\(recipe.recipeServings)" : ""),
+                    .init(icon: "timer", value: recipe.prepTime ?? ""),
+                    .init(icon: "flame", value: recipe.performTime ?? ""),
+                ]))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 
@@ -48,11 +48,7 @@ struct RecipeDetailView: View {
                     ForEach(recipe.ingredients.sorted { $0.orderIndex < $1.orderIndex }) { ingredient in
                         VStack(alignment: .leading, spacing: 2) {
                             if let title = ingredient.title, !title.isEmpty {
-                                Text(title)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.primary)
-                                    .padding(.top, 8)
+                                RecipeSectionHeader(title: title)
                             }
                             HStack {
                                 Button(action: {
@@ -82,11 +78,7 @@ struct RecipeDetailView: View {
                     ForEach(recipe.instructions.sorted { $0.step < $1.step }) { instruction in
                         VStack(alignment: .leading, spacing: 2) {
                             if let title = instruction.title, !title.isEmpty {
-                                Text(title)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.primary)
-                                    .padding(.top, 8)
+                                RecipeSectionHeader(title: title)
                             }
                             HStack(alignment: .top) {
                                 Text("\(instruction.step).")

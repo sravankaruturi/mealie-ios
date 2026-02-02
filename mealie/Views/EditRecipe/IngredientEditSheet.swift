@@ -28,9 +28,6 @@ struct IngredientEditSheet: View {
 //        IngredientUnit(name: "lb"),
 //        IngredientUnit(name: "bunch")
 //    ]
-    let fractions = ["¼", "⅓", "½", "⅔", "¾"]
-    let numbers = ["1","2","3","4","5","6","7","8","9","0"]
-    
     var body: some View {
         VStack(spacing: 12) {
             HStack {
@@ -67,39 +64,10 @@ struct IngredientEditSheet: View {
             
             // Custom number pad/unit picker
             if editingField == .quantity {
-                HStack(spacing: 8) {
-                    ForEach(fractions, id: \.self) { frac in
-                        Button(frac) { quantity.append(frac) }
-                            .ingredientPadButton()
-                    }
-                }
-                .padding(.bottom, 2)
-                HStack(spacing: 8) {
-                    ForEach(["1","2","3"], id: \.self) { n in
-                        Button(n) { quantity.append(n) }
-                            .ingredientPadButton()
-                    }
-                }
-                HStack(spacing: 8) {
-                    ForEach(["4","5","6"], id: \.self) { n in
-                        Button(n) { quantity.append(n) }
-                            .ingredientPadButton()
-                    }
-                }
-                HStack(spacing: 8) {
-                    ForEach(["7","8","9"], id: \.self) { n in
-                        Button(n) { quantity.append(n) }
-                            .ingredientPadButton()
-                    }
-                }
-                HStack(spacing: 8) {
-                    Button("0") { quantity.append("0") }
-                        .ingredientPadButton()
-                    Button(".") { quantity.append(".") }
-                        .ingredientPadButton()
-                    Button("delete") { if !quantity.isEmpty { quantity.removeLast() } }
-                        .ingredientPadButton(background: .red.opacity(0.15), foreground: .red)
-                }
+                NumberPadView(
+                    onKeyPress: { key in quantity.append(key) },
+                    onDelete: { if !quantity.isEmpty { quantity.removeLast() } }
+                )
             } else if editingField == .unit {
                 Picker("Unit", selection: $unit) {
                     ForEach(availableUnits, id: \.id) { u in
@@ -166,17 +134,6 @@ struct IngredientEditSheet: View {
     }
 }
 
-extension View {
-    /// Applies a standard keypad button style with configurable background and foreground colors.
-    func ingredientPadButton(background: Color = Color(.systemGray5), foreground: Color = .primary) -> some View {
-        self
-            .font(.title2)
-            .frame(width: 56, height: 44)
-            .background(background)
-            .foregroundColor(foreground)
-            .cornerRadius(12)
-    }
-}
 
 #Preview {
     IngredientEditSheet(

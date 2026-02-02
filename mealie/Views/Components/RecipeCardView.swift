@@ -65,12 +65,10 @@ struct RecipeCardView: View {
 
                 Spacer()
                 
-                HStack {
-                    if let cookTime = recipe.cookTime?.split(separator: " ").first {
-                        Label(cookTime, systemImage: "flame")
-                    }
-                    Label("\(recipe.recipeServings)", systemImage: "person.2")
-                }
+                RecipeMetadataRow(items: RecipeMetadataRow.filtered([
+                    .init(icon: "flame", value: recipe.cookTime?.split(separator: " ").first.map(String.init) ?? ""),
+                    .init(icon: "person.2", value: recipe.recipeServings > 0 ? "\(recipe.recipeServings)" : ""),
+                ]))
                 .font(.caption)
                 .padding(.all, 8)
                 .background(Color.white.opacity(0.8))
