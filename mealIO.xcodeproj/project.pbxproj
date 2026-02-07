@@ -11,6 +11,7 @@
 		F63868082DFE967F00244F38 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F63868072DFE967F00244F38 /* Kingfisher */; };
 		F638681A2DFFE94500244F38 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = F63868192DFFE94500244F38 /* OpenAPIRuntime */; };
 		F638681D2DFFE95300244F38 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = F638681C2DFFE95300244F38 /* OpenAPIURLSession */; };
+		F6AA00032EAE100000000003 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = F6AA00022EAE100000000002 /* SnapshotTesting */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6AA00032EAE100000000003 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,6 +173,7 @@
 			);
 			name = mealIOTests;
 			packageProductDependencies = (
+				F6AA00022EAE100000000002 /* SnapshotTesting */,
 			);
 			productName = mealieTests;
 			productReference = F638679D2DFE913D00244F38 /* mealIOTests.xctest */;
@@ -236,6 +239,7 @@
 				F63868182DFFE94500244F38 /* XCRemoteSwiftPackageReference "swift-openapi-runtime" */,
 				F638681B2DFFE95300244F38 /* XCRemoteSwiftPackageReference "swift-openapi-urlsession" */,
 				F638681E2DFFEA9900244F38 /* XCRemoteSwiftPackageReference "swift-openapi-generator" */,
+				F6AA00012EAE100000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F638678F2DFE913C00244F38 /* Products */;
@@ -653,6 +657,14 @@
 				minimumVersion = 1.8.0;
 			};
 		};
+		F6AA00012EAE100000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.18.9;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -675,6 +687,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F638681E2DFFEA9900244F38 /* XCRemoteSwiftPackageReference "swift-openapi-generator" */;
 			productName = "plugin:OpenAPIGenerator";
+		};
+		F6AA00022EAE100000000002 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F6AA00012EAE100000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
