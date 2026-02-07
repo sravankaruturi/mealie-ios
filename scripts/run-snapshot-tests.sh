@@ -53,6 +53,10 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         --class)
+            if [[ -z "${2:-}" ]]; then
+                echo -e "${RED}Error: --class requires a class name argument${NC}"
+                exit 1
+            fi
             TEST_FILTER="$2"
             shift 2
             ;;
@@ -108,7 +112,7 @@ OUTPUT=$(xcodebuild test \
     -project "$PROJECT" \
     -scheme "$SCHEME" \
     -destination "$DESTINATION" \
-    $ONLY_TESTING \
+    "$ONLY_TESTING" \
     2>&1) || true
 
 # Show snapshot test results

@@ -30,8 +30,9 @@ final class ContentViewSnapshotTests: XCTestCase {
     }
 
     func test_sessionExpired_showsLogin() {
-        // SessionExpired shows LoginView (same as unauthenticated)
-        let view = snapshotView(LoginView())
+        // SessionExpired shows LoginView - pass sessionExpired status so future
+        // UI changes (e.g., session-expired-specific messaging) are caught
+        let view = snapshotView(LoginView(), authStatus: .sessionExpired)
         assertViewSnapshot(view)
     }
 }
